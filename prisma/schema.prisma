@@ -1,0 +1,225 @@
+// Gavl — real-time auction house. Postgres + Prisma.
+// All money is stored in integer minor units (paise) to avoid float drift.
+
+generator client {
+  provider        = "prisma-client-js"
+  // Collapse `include`/nested-`select` relations into a single SQL JOIN instead
+  // of one round-trip per relation — a big win against a distant database.
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DurationType {
+  HOURLY
+  DAILY
+  WEEKLY
+  WEEKLY_SHOWDOWN
+}
+
+enum ListingStatus {
+  SCHEDULED
+  LIVE
+  ENDING_SOON
+  CLOSED
+  SOLD
+  UNSOLD
+}
+
+enum NotificationType {
+  OUTBID
+  WON
+  LOST
+  ENDING_SOON
+  SHOWDOWN_STARTING
+  BID_PLACED
+  ORDER_PAID
+  ORDER_CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum Role {
+  BIDDER
+  SELLER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  handle       String   @unique
+  name         String
+  email        String   @unique
+  passwordHash String
+  avatar       String?
+  role         Role     @default(BIDDER)
+  createdAt    DateTime @default(now())
+
+  // Denormalised aggregate stats, kept fresh on auction close / bid.
+  totalBids       Int @default(0)
+  auctionsWon     Int @default(0)
+  totalWonValue   Int @default(0) // sum of winning bid amounts, minor units
+  highestSingleBid Int @default(0)
+
+  bids          Bid[]
+  listings      Listing[]      @relation("SellerListings")
+  wonListings   Listing[]      @relation("WonListings")
+  watchlist     Watchlist[]
+  notifications Notification[]
+  boughtOrders  Order[]        @relation("BuyerOrders")
+  soldOrders    Order[]        @relation("SellerOrders")
+
+  @@index([totalWonValue])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  icon     String // lucide icon key
+  accent   String    @default("gold")
+  listings Listing[]
+}
+
+model Listing {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  images        String[]
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  sellerId      String
+  seller        User          @relation("SellerListings", fields: [sellerId], references: [id])
+
+  startingPrice Int // minor units
+  currentPrice  Int // minor units, server-authoritative
+  bidIncrement  Int // minimum raise, minor units
+  buyNowPrice   Int? // minor units, optional
+
+  durationType  DurationType
+  startsAt      DateTime
+  endsAt        DateTime
+  status        ListingStatus @default(SCHEDULED)
+
+  winnerId      String?
+  winner        User?         @relation("WonListings", fields: [winnerId], references: [id])
+
+  isFeatured    Boolean       @default(false)
+  viewCount     Int           @default(0)
+  bidCount      Int           @default(0)
+
+  createdAt     DateTime      @default(now())
+
+  bids          Bid[]
+  watchers      Watchlist[]
+  notifications Notification[]
+  order         Order?
+
+  @@index([status, endsAt])
+  @@index([durationType, status])
+  @@index([categoryId])
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int // minor units
+  isWinning Boolean  @default(false)
+  isAutoBid Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  listingId String?
+  listing   Listing?         @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read, createdAt])
+}
+
+// Optional snapshot table. We compute leaderboards on the fly for MVP scale,
+// but keep this for future caching / historical boards.
+model LeaderboardSnapshot {
+  id          String   @id @default(cuid())
+  period      String // DAY | WEEK | MONTH | ALL_TIME
+  userId      String
+  rank        Int
+  score       Int
+  auctionsWon Int
+  periodStart DateTime
+  periodEnd   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([period, rank])
+}
+
+// Tracks the single active Weekly Showdown so the scheduler can rotate it.
+model ShowdownEvent {
+  id         String    @id @default(cuid())
+  listingId  String    @unique
+  openedAt   DateTime  @default(now())
+  closedAt   DateTime?
+  isActive   Boolean   @default(true)
+  winnerId   String?
+
+  @@index([isActive])
+}
+
+// A sale wire: created the moment an auction closes (or a Buy Now is taken),
+// paid when the winner completes checkout. Money is integer paise.
+model Order {
+  id        String      @id @default(cuid())
+  listingId String      @unique
+  listing   Listing     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  sellerId  String
+  seller    User        @relation("SellerOrders", fields: [sellerId], references: [id])
+
+  amount   Int // final sale price, minor units
+  status   OrderStatus @default(PENDING)
+  paidAt   DateTime?
+
+  // Checkout details (contact + delivery) captured at payment time.
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+  shipTo       String? // address / pickup location
+
+  createdAt DateTime @default(now())
+
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+}

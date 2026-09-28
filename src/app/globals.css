@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0c;
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: #e7e7ea;
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  /* Auction-house spotlight: two very low warm/cool washes, plus fine grain. */
+  background-image:
+    radial-gradient(1100px 620px at 78% -8%, rgba(232, 179, 74, 0.09), transparent 60%),
+    radial-gradient(900px 560px at 10% 4%, rgba(111, 107, 255, 0.08), transparent 55%);
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+@layer base {
+  ::selection {
+    background: rgba(232, 179, 74, 0.28);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid rgba(232, 179, 74, 0.6);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Frosted panel — the base surface for cards, sheets, boards. */
+  .panel {
+    @apply relative rounded-2xl border border-white/[0.07] bg-ink-850/70 backdrop-blur-xl;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px -34px rgba(0, 0, 0, 0.9);
+  }
+  .panel-flat {
+    @apply relative rounded-2xl border border-white/[0.07] bg-ink-850/60;
+  }
+  .hairline {
+    @apply border-t border-white/[0.06];
+  }
+  /* Numerics: tabular mono so prices/timers don't jitter as they tick. */
+  .num {
+    @apply font-mono tabular-nums tracking-tight;
+    font-variant-numeric: tabular-nums;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-gold {
+    @apply btn bg-gradient-to-b from-gold-soft to-gold text-ink-950;
+    box-shadow: 0 6px 24px -10px rgba(232, 179, 74, 0.7);
+  }
+  .btn-gold:hover {
+    @apply from-gold to-gold-deep;
+  }
+  .btn-ghost {
+    @apply btn border border-white/10 bg-white/[0.03] text-white/85 hover:bg-white/[0.07];
+  }
+  .btn-arc {
+    @apply btn bg-arc text-white hover:bg-arc-deep;
+    box-shadow: 0 6px 24px -12px rgba(111, 107, 255, 0.8);
+  }
+  .label-caps {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/40;
+  }
+  .link-underline {
+    @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-gold after:transition-all hover:after:w-full;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .rail {
+    @apply flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x snap-mandatory;
+  }
+  .text-gradient-gold {
+    background: linear-gradient(180deg, #ffe6a8, #e8b34a 70%, #b8842a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .mask-fade-r {
+    -webkit-mask-image: linear-gradient(to right, black 88%, transparent);
+    mask-image: linear-gradient(to right, black 88%, transparent);
+  }
+}
+
+/* Global scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+}
