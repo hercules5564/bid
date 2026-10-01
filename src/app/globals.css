@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
-  --bg: #0a0a0c;
+  color-scheme: light;
+  --bg: #f3ecdd;
 }
 
 * {
-  border-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(60, 45, 15, 0.1);
 }
 
 html {
@@ -17,15 +17,15 @@ html {
 
 body {
   background-color: var(--bg);
-  color: #e7e7ea;
+  color: #1a1408;
   font-feature-settings: "cv02", "cv03", "cv04", "ss01";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100vh;
-  /* Auction-house spotlight: two very low warm/cool washes, plus fine grain. */
+  /* Antique parchment wash */
   background-image:
-    radial-gradient(1100px 620px at 78% -8%, rgba(232, 179, 74, 0.09), transparent 60%),
-    radial-gradient(900px 560px at 10% 4%, rgba(111, 107, 255, 0.08), transparent 55%);
+    radial-gradient(1100px 620px at 78% -8%, rgba(184, 134, 11, 0.08), transparent 60%),
+    radial-gradient(900px 560px at 10% 4%, rgba(184, 134, 11, 0.05), transparent 55%);
   background-attachment: fixed;
 }
 
@@ -47,19 +47,34 @@ body::before {
     outline: 2px solid rgba(232, 179, 74, 0.6);
     outline-offset: 2px;
   }
+  /* Stylish native dropdown options — match parchment + gold theme. */
+  select option {
+    background-color: #faf6ec;
+    color: #1a1408;
+    font-weight: 500;
+  }
+  select option:checked {
+    background-color: rgba(232, 179, 74, 0.25);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer components {
-  /* Frosted panel — the base surface for cards, sheets, boards. */
+  /* Cream card — SG Auctions antique surface. */
   .panel {
-    @apply relative rounded-2xl border border-white/[0.07] bg-ink-850/70 backdrop-blur-xl;
-    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 24px 60px -34px rgba(0, 0, 0, 0.9);
+    @apply relative rounded-2xl border border-[#3c2d0f]/10 bg-cream backdrop-blur-xl;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset, 0 24px 60px -34px rgba(60, 45, 15, 0.35);
   }
   .panel-flat {
-    @apply relative rounded-2xl border border-white/[0.07] bg-ink-850/60;
+    @apply relative rounded-2xl border border-[#3c2d0f]/10 bg-cream;
   }
   .hairline {
-    @apply border-t border-white/[0.06];
+    @apply border-t border-[#3c2d0f]/10;
   }
   /* Numerics: tabular mono so prices/timers don't jitter as they tick. */
   .num {
@@ -67,27 +82,27 @@ body::before {
     font-variant-numeric: tabular-nums;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-[#3c2d0f]/15 bg-white/60 px-2.5 py-1 text-xs font-medium;
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-gold {
-    @apply btn bg-gradient-to-b from-gold-soft to-gold text-ink-950;
-    box-shadow: 0 6px 24px -10px rgba(232, 179, 74, 0.7);
+    @apply btn bg-[#111111] text-[#e8b34a];
+    box-shadow: 0 6px 24px -10px rgba(0, 0, 0, 0.5);
   }
   .btn-gold:hover {
-    @apply from-gold to-gold-deep;
+    @apply bg-black text-[#ffcf6b];
   }
   .btn-ghost {
-    @apply btn border border-white/10 bg-white/[0.03] text-white/85 hover:bg-white/[0.07];
+    @apply btn border border-[#111111]/70 bg-white text-[#111111] hover:bg-[#111111] hover:text-[#e8b34a];
   }
   .btn-arc {
     @apply btn bg-arc text-white hover:bg-arc-deep;
     box-shadow: 0 6px 24px -12px rgba(111, 107, 255, 0.8);
   }
   .label-caps {
-    @apply text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/40;
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.28em] text-[#b8860b];
   }
   .link-underline {
     @apply relative after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-gold after:transition-all hover:after:w-full;

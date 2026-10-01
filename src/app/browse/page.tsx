@@ -34,10 +34,10 @@ export default async function BrowsePage({ searchParams }: { searchParams: Promi
         <div className="label-caps mb-1 flex items-center gap-1.5">
           <LayoutGrid size={13} /> The floor
         </div>
-        <h1 className="font-display text-3xl font-extrabold text-white">
+        <h1 className="font-display text-3xl font-extrabold text-[#1a1408]">
           {activeCat ? activeCat.name : params.q ? `“${params.q}”` : "Browse all lots"}
         </h1>
-        <p className="num mt-1 text-sm text-white/45">
+        <p className="num mt-1 text-sm text-[#1a1408]/55">
           {listings.length} {listings.length === 1 ? "lot" : "lots"}
         </p>
       </div>

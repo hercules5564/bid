@@ -29,8 +29,8 @@ function HallOfFame({ champ, moneyScore }: { champ?: LeaderboardEntry; moneyScor
         <div className="flex items-center gap-4">
           <Avatar src={champ.user.avatar} name={champ.user.name} size="lg" ring />
           <div>
-            <div className="font-display text-xl font-extrabold text-white">@{champ.user.handle}</div>
-            <div className="mt-0.5 text-sm text-white/50">
+            <div className="font-display text-xl font-extrabold text-[#1a1408]">@{champ.user.handle}</div>
+            <div className="mt-0.5 text-sm text-[#1a1408]/50">
               {champ.auctionsWon} wins · high bid {formatMoney(champ.highestSingleBid)}
             </div>
             <div className="num mt-1 text-lg font-bold text-gold">
@@ -39,7 +39,7 @@ function HallOfFame({ champ, moneyScore }: { champ?: LeaderboardEntry; moneyScor
           </div>
         </div>
       ) : (
-        <p className="text-sm text-white/40">No champion crowned yet. The throne is open.</p>
+        <p className="text-sm text-[#1a1408]/40">No champion crowned yet. The throne is open.</p>
       )}
     </div>
   );
@@ -99,16 +99,16 @@ export function LiveLeaderboards({
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Trophy size={16} className="text-gold" />
-            <span className="font-display text-base font-bold text-white">Leaderboards</span>
+            <span className="font-display text-base font-bold text-[#1a1408]">Leaderboards</span>
           </div>
-          <div className="flex gap-1 rounded-xl border border-white/8 bg-ink-900/60 p-1">
+          <div className="flex gap-1 rounded-xl border border-[#3c2d0f]/10 bg-white/70 p-1">
             {TABS.map((t) => (
               <button
                 key={t.period}
                 onClick={() => setActive(t.period)}
                 className={cn(
                   "rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                  active === t.period ? "bg-gold text-ink-950" : "text-white/50 hover:text-white"
+                  active === t.period ? "bg-gold text-ink-950" : "text-[#1a1408]/50 hover:text-[#1a1408]"
                 )}
               >
                 {t.label}
@@ -117,7 +117,7 @@ export function LiveLeaderboards({
           </div>
         </div>
 
-        <p className="mb-3 flex items-center gap-1.5 text-xs text-white/40">
+        <p className="mb-3 flex items-center gap-1.5 text-xs text-[#1a1408]/40">
           <Flame size={12} className="text-ember" /> {metricLabel}
         </p>
 

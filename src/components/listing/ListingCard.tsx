@@ -13,12 +13,12 @@ export function ListingCard({ listing: l, className }: { listing: ListingSummary
     <Link
       href={`/listing/${l.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-2xl border border-white/[0.07] bg-ink-850/70 transition-all duration-200",
-        "hover:-translate-y-0.5 hover:border-gold/30 hover:shadow-glow-gold",
+        "group relative block overflow-hidden rounded-2xl border border-[#3c2d0f]/10 bg-cream transition-all duration-200",
+        "hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-glow-gold",
         className
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-ink-800">
+      <div className="relative aspect-[4/3] overflow-hidden bg-sand">
         {l.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -31,11 +31,11 @@ export function ListingCard({ listing: l, className }: { listing: ListingSummary
             )}
           />
         ) : (
-          <div className="grid h-full place-items-center text-white/15">
+          <div className="grid h-full place-items-center text-[#1a1408]/20">
             <Gavel size={40} />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1408]/40 via-transparent to-transparent" />
 
         <div className="absolute left-3 top-3">
           <DurationBadge type={l.durationType} />
@@ -43,36 +43,36 @@ export function ListingCard({ listing: l, className }: { listing: ListingSummary
         <div className="absolute right-3 top-3">
           <StatusPill status={l.status} />
         </div>
-        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-medium text-white/75">
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-medium text-white drop-shadow">
           <CategoryIcon icon={l.category.icon} size={13} />
           {l.category.name}
         </div>
       </div>
 
       <div className="p-4">
-        <h3 className="line-clamp-2 min-h-[2.5rem] font-display text-[0.95rem] font-semibold leading-snug text-white">
+        <h3 className="line-clamp-2 min-h-[2.5rem] font-display text-[0.95rem] font-semibold leading-snug text-[#1a1408]">
           {l.title}
         </h3>
 
         <div className="mt-3 flex items-end justify-between gap-2">
           <div>
             <div className="label-caps">Current bid</div>
-            <div className="num text-lg font-bold text-gold">{formatMoney(l.currentPrice)}</div>
+            <div className="num text-lg font-bold text-[#b8860b]">{formatMoney(l.currentPrice)}</div>
           </div>
           <div className="text-right">
             <div className="label-caps">{closed ? "Result" : "Ends in"}</div>
             {closed ? (
-              <div className="num text-sm text-white/50">{l.status === "SOLD" ? "Sold" : "Closed"}</div>
+              <div className="num text-sm text-[#1a1408]/55">{l.status === "SOLD" ? "Sold" : "Closed"}</div>
             ) : (
               <Countdown endsAt={l.endsAt} size="sm" urgentUnder={300} />
             )}
           </div>
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3 text-xs text-white/45">
+        <div className="mt-3 flex items-center justify-between border-t border-[#3c2d0f]/10 pt-3 text-xs text-[#1a1408]/55">
           <span className="num">{l.bidCount} bids</span>
           <span>
-            min next <span className="num text-white/65">{formatMoneyShort(l.minNextBid)}</span>
+            min next <span className="num text-[#1a1408]/75">{formatMoneyShort(l.minNextBid)}</span>
           </span>
         </div>
       </div>

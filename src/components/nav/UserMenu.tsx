@@ -18,8 +18,15 @@ export function UserMenu() {
     const onClick = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   if (!user) return null;
@@ -44,44 +51,54 @@ export function UserMenu() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] py-1 pl-1 pr-2 transition-colors hover:bg-white/[0.07]"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] py-1 pl-1 pr-2 transition-all duration-200 hover:border-gold/30 hover:bg-white/[0.07] hover:shadow-glow-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
       >
         <Avatar src={user.avatar} name={user.name} size="sm" />
-        <ChevronDown size={14} className="text-white/40" />
+        <ChevronDown
+          size={14}
+          className={`text-white/40 transition-transform duration-200 ${open ? "rotate-180 text-gold" : ""}`}
+        />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
+            role="menu"
             initial={{ opacity: 0, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.15 }}
-            className="panel absolute right-0 z-50 mt-2 w-56 overflow-hidden p-1.5"
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            style={{ transformOrigin: "top right" }}
+            className="panel absolute right-0 z-50 mt-2 w-60 overflow-hidden p-1.5 shadow-[0_24px_60px_-20px_rgba(60,45,15,0.45)]"
           >
             <div className="flex items-center gap-2.5 px-2.5 py-2">
               <Avatar src={user.avatar} name={user.name} size="md" />
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">{user.name}</p>
-                <p className="truncate text-xs text-white/40">@{user.handle}</p>
+                <p className="truncate text-sm font-semibold text-[#1a1408]">{user.name}</p>
+                <p className="truncate text-xs text-[#1a1408]/50">@{user.handle}</p>
               </div>
             </div>
-            <div className="my-1 border-t border-white/[0.06]" />
+            <div className="my-1 border-t border-[#3c2d0f]/10" />
             {items.map((it) => (
               <Link
                 key={it.href}
                 href={it.href}
+                role="menuitem"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-white/75 transition-colors hover:bg-white/[0.05] hover:text-white"
+                className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-[#1a1408]/80 transition-colors duration-200 hover:bg-gold/10 hover:text-[#1a1408] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
               >
-                {it.icon}
+                <span className="text-[#1a1408]/45">{it.icon}</span>
                 {it.label}
               </Link>
             ))}
-            <div className="my-1 border-t border-white/[0.06]" />
+            <div className="my-1 border-t border-[#3c2d0f]/10" />
             <button
               onClick={logout}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ember/90 transition-colors hover:bg-ember/10"
+              role="menuitem"
+              className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-ember/90 transition-colors duration-200 hover:bg-ember/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ember/40"
             >
               <LogOut size={15} />
               Log out

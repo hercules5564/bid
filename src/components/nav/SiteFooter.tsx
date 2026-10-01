@@ -31,15 +31,15 @@ const COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/[0.06] bg-ink-950/50">
+    <footer className="border-t border-[#3c2d0f]/10 bg-[#e7dcc0]/40">
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
               <Gavel size={18} className="text-gold" />
-              <span className="font-display text-lg font-extrabold text-white">Gavl</span>
+              <span className="font-display text-lg font-extrabold text-[#1a1408]">Gavl</span>
             </div>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/40">
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#1a1408]/40">
               The live auction house where bids move in real time. Flash lots, Weekly Showdowns
               and leaderboards that play like a game.
             </p>
@@ -58,7 +58,7 @@ export function SiteFooter() {
               <ul className="flex flex-col gap-2.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-sm text-white/45 transition-colors hover:text-white/80">
+                    <Link href={l.href} className="text-sm text-[#1a1408]/45 transition-colors hover:text-[#1a1408]/80">
                       {l.label}
                     </Link>
                   </li>
@@ -68,9 +68,9 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-6 sm:flex-row">
-          <span className="text-xs text-white/30">© {new Date().getFullYear()} Gavl.</span>
-          <span className="text-xs text-white/30">Bid live. Win fast. Rank forever.</span>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[#3c2d0f]/10 pt-6 sm:flex-row">
+          <span className="text-xs text-[#1a1408]/30">© {new Date().getFullYear()} Gavl.</span>
+          <span className="text-xs text-[#1a1408]/30">Bid live. Win fast. Rank forever.</span>
         </div>
       </div>
     </footer>

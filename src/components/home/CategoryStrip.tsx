@@ -12,13 +12,13 @@ export function CategoryStrip({ categories }: { categories: CategoryWithCount[] 
           <div className="label-caps mb-1 flex items-center gap-1.5">
             <LayoutGrid size={13} /> Browse the house
           </div>
-          <h2 className="font-display text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          <h2 className="font-display text-2xl font-extrabold tracking-tight text-[#1a1408] sm:text-3xl">
             Every category, live on the floor.
           </h2>
         </div>
         <Link
           href="/browse"
-          className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-white/50 transition-colors hover:text-gold"
+          className="group inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[#1a1408]/50 transition-colors hover:text-gold"
         >
           View all lots <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
         </Link>
@@ -29,16 +29,16 @@ export function CategoryStrip({ categories }: { categories: CategoryWithCount[] 
           <Link
             key={c.id}
             href={`/browse?category=${c.slug}`}
-            className="group flex items-center gap-3 rounded-2xl border border-white/[0.07] bg-ink-850/60 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.14]"
+            className="group flex items-center gap-3 rounded-2xl border border-[#3c2d0f]/15 bg-white/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.14]"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.04] text-white/60 transition-colors group-hover:text-gold">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[#3c2d0f]/15 bg-[#3c2d0f]/[0.05] text-[#1a1408]/60 transition-colors group-hover:text-gold">
               <CategoryIcon icon={c.icon} size={18} />
             </span>
             <span className="min-w-0">
-              <span className="block truncate font-display text-sm font-bold text-white group-hover:text-gold">
+              <span className="block truncate font-display text-sm font-bold text-[#1a1408] group-hover:text-gold">
                 {c.name}
               </span>
-              <span className="num text-xs text-white/40">
+              <span className="num text-xs text-[#1a1408]/40">
                 {c.liveCount} live{c.liveCount === 1 ? "" : "s"}
               </span>
             </span>

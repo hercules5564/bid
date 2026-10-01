@@ -45,7 +45,7 @@ export function Countdown({
   }, [ms, onEnd]);
 
   if (ms <= 0) {
-    return <span className={cn("num text-white/40", sizeClass[size], className)}>Ended</span>;
+    return <span className={cn("num text-[#1a1408]/40", sizeClass[size], className)}>Ended</span>;
   }
 
   return (
@@ -53,7 +53,7 @@ export function Countdown({
       className={cn(
         "num font-semibold tabular-nums",
         sizeClass[size],
-        urgent ? "text-ember" : "text-white",
+        urgent ? "text-ember" : "text-[#1a1408]",
         urgent && "animate-pulse",
         className
       )}

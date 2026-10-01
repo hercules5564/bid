@@ -23,7 +23,7 @@ export function TopNav() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-ink-950/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-[#e8b34a]/20 bg-[#111111] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
         <Logo />
 
@@ -34,7 +34,7 @@ export function TopNav() {
               href={l.href}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive(l.href) ? "text-white" : "text-white/55 hover:text-white"
+                isActive(l.href) ? "text-[#e8b34a]" : "text-white/60 hover:text-[#e8b34a]"
               )}
             >
               {l.label}
@@ -44,7 +44,7 @@ export function TopNav() {
             href="/showdown"
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
-              isActive("/showdown") ? "text-gold" : "text-gold/80 hover:text-gold"
+              isActive("/showdown") ? "text-[#e8b34a]" : "text-[#e8b34a]/70 hover:text-[#e8b34a]"
             )}
           >
             <Swords size={15} />
@@ -57,14 +57,14 @@ export function TopNav() {
             e.preventDefault();
             if (q.trim()) router.push(`/browse?q=${encodeURIComponent(q.trim())}`);
           }}
-          className="ml-auto hidden items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 lg:flex lg:w-64"
+          className="ml-auto hidden items-center gap-2 rounded-lg border border-[#e8b34a]/40 px-3 py-2 lg:flex lg:w-64"
         >
-          <Search size={15} className="text-white/35" />
+          <Search size={15} className="text-[#e8b34a]" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search lots…"
-            className="w-full bg-transparent text-sm text-white placeholder:text-white/30 focus:outline-none"
+            className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
           />
         </form>
 
@@ -76,10 +76,10 @@ export function TopNav() {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-ghost hidden sm:inline-flex">
+              <Link href="/login" className="hidden rounded-lg border border-[#e8b34a]/50 px-4 py-2 text-sm font-semibold text-[#e8b34a] sm:inline-flex">
                 Sign in
               </Link>
-              <Link href="/signup" className="btn-gold">
+              <Link href="/signup" className="rounded-lg bg-[#e8b34a] px-4 py-2 text-sm font-bold text-black">
                 Join
               </Link>
             </>

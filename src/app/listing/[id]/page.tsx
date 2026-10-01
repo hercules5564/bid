@@ -32,7 +32,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     <div className="mx-auto max-w-6xl">
       <Link
         href={`/browse?category=${detail.category.slug}`}
-        className="mb-5 inline-flex items-center gap-1 text-sm text-white/45 transition-colors hover:text-white"
+        className="mb-5 inline-flex items-center gap-1 text-sm text-[#1a1408]/45 transition-colors hover:text-[#1a1408]"
       >
         <ChevronLeft size={15} /> {detail.category.name}
       </Link>
@@ -46,14 +46,14 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             <ReceiptText size={18} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-display text-sm font-bold text-white">
+            <span className="block font-display text-sm font-bold text-[#1a1408]">
               You won this lot — checkout now
             </span>
-            <span className="block text-xs text-white/50">
+            <span className="block text-xs text-[#1a1408]/50">
               Pay {formatMoney(order.amount)} to complete your purchase.
             </span>
           </span>
-          <ArrowRight size={16} className="shrink-0 text-white/40 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight size={16} className="shrink-0 text-[#1a1408]/40 transition-transform group-hover:translate-x-0.5" />
         </Link>
       )}
 
@@ -62,16 +62,16 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           <Gallery images={detail.images} title={detail.title} />
 
           <div>
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-white/50">
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-[#1a1408]/50">
               <CategoryIcon icon={detail.category.icon} size={13} />
               {detail.category.name}
             </div>
-            <h1 className="font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl">
+            <h1 className="font-display text-2xl font-extrabold leading-tight text-[#1a1408] sm:text-3xl">
               {detail.title}
             </h1>
           </div>
 
-          <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-white/65">{detail.description}</p>
+          <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-[#1a1408]/65">{detail.description}</p>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Fact label="Started at" value={formatMoney(detail.startingPrice)} icon={<Tag size={13} />} />
@@ -84,7 +84,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             <Avatar src={detail.seller.avatar} name={detail.seller.name} size="md" />
             <div>
               <div className="label-caps">Listed by</div>
-              <Link href={`/u/${detail.seller.handle}`} className="text-sm font-semibold text-white hover:text-gold">
+              <Link href={`/u/${detail.seller.handle}`} className="text-sm font-semibold text-[#1a1408] hover:text-gold">
                 @{detail.seller.handle}
               </Link>
             </div>
@@ -106,7 +106,7 @@ function Fact({ label, value, icon }: { label: string; value: string; icon?: Rea
         {icon}
         {label}
       </div>
-      <div className="num text-sm font-bold text-white">{value}</div>
+      <div className="num text-sm font-bold text-[#1a1408]">{value}</div>
     </div>
   );
 }

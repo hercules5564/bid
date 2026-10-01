@@ -16,7 +16,7 @@ export function StatCard({
   className?: string;
 }) {
   const toneText = {
-    default: "text-white",
+    default: "text-[#1a1408]",
     gold: "text-gold",
     arc: "text-arc-soft",
     mint: "text-mint",
@@ -27,10 +27,10 @@ export function StatCard({
     <div className={cn("panel-flat p-4", className)}>
       <div className="mb-1.5 flex items-center justify-between">
         <span className="label-caps">{label}</span>
-        {icon && <span className="text-white/30">{icon}</span>}
+        {icon && <span className="text-[#1a1408]/30">{icon}</span>}
       </div>
       <div className={cn("num text-2xl font-extrabold", toneText)}>{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-white/40">{sub}</div>}
+      {sub && <div className="mt-0.5 text-xs text-[#1a1408]/40">{sub}</div>}
     </div>
   );
 }

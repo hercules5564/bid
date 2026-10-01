@@ -47,18 +47,18 @@ export function LeaderboardRow({
           ? "border-gold/30 bg-gold/[0.05]"
           : entry.rank === 1
             ? "border-medal-gold/25 bg-medal-gold/[0.04]"
-            : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+            : "border-[#3c2d0f]/10 bg-[#3c2d0f]/[0.04] hover:bg-[#3c2d0f]/[0.05]"
       )}
     >
       <RankBadge rank={entry.rank} />
       <Avatar src={entry.user.avatar} name={entry.user.name} size="sm" ring={entry.rank === 1} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-sm font-semibold text-white">@{entry.user.handle}</span>
+          <span className="truncate text-sm font-semibold text-[#1a1408]">@{entry.user.handle}</span>
           {entry.rank === 1 && <Crown size={13} className="text-medal-gold" />}
           <Delta delta={delta} />
         </div>
-        <div className="text-[0.68rem] text-white/40">
+        <div className="text-[0.68rem] text-[#1a1408]/40">
           {entry.auctionsWon} wins · high {formatMoney(entry.highestSingleBid)}
         </div>
       </div>
@@ -86,7 +86,7 @@ export function LeaderboardList({
   return (
     <div className="flex flex-col gap-1.5">
       {entries.length === 0 ? (
-        <p className="py-8 text-center text-sm text-white/35">{emptyLabel}</p>
+        <p className="py-8 text-center text-sm text-[#1a1408]/35">{emptyLabel}</p>
       ) : (
         entries.map((e) => (
           <LeaderboardRow key={e.user.id} entry={e} moneyScore={moneyScore} delta={deltas?.get(e.user.id)} />
@@ -94,7 +94,7 @@ export function LeaderboardList({
       )}
       {you && !youInTop && (
         <>
-          <div className="my-1 text-center text-xs text-white/25">···</div>
+          <div className="my-1 text-center text-xs text-[#1a1408]/25">···</div>
           <LeaderboardRow entry={you} moneyScore={moneyScore} highlight />
         </>
       )}

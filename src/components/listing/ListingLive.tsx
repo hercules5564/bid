@@ -115,13 +115,13 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
         <div className="flex flex-wrap items-center gap-2">
           <DurationBadge type={detail.durationType} />
           <StatusPill status={closed ? status : timeUp ? "ENDING_SOON" : status} />
-          <span className="chip text-white/50">
+          <span className="chip text-[#1a1408]/50">
             <Users size={12} /> {watchers > 0 ? watchers : detail.activeBidders} {watchers > 0 ? "watching" : "bidders"}
           </span>
         </div>
 
         <div className="mt-4 flex items-end justify-between gap-3">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="label-caps">{closed ? "Final price" : "Current bid"}</div>
             <AnimatePresence mode="popLayout">
               <motion.div
@@ -130,17 +130,17 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 12, position: "absolute" }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className="num text-3xl font-extrabold text-gold sm:text-4xl"
+                className="num whitespace-nowrap py-0.5 pl-0.5 pr-2 text-[1.65rem] font-extrabold leading-[1.15] text-gold-deep sm:text-4xl"
               >
                 {formatMoney(price)}
               </motion.div>
             </AnimatePresence>
-            <div className="mt-1 text-xs text-white/40 num">{bidCount} bids placed</div>
+            <div className="num mt-1 text-xs font-medium text-[#1a1408]/55">{bidCount} bids placed</div>
           </div>
           <div className="text-right">
             <div className="label-caps">{closed ? "Ended" : "Time left"}</div>
             {closed ? (
-              <div className="num text-lg text-white/50">Closed</div>
+              <div className="num text-lg text-[#1a1408]/50">Closed</div>
             ) : (
               <Countdown endsAt={endsAt} size="lg" urgentUnder={60} onEnd={() => setTimeUp(true)} />
             )}
@@ -154,7 +154,7 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gold">
                 <Crown size={13} /> Winner
               </div>
-              <div className="text-sm font-semibold text-white">@{winner.handle}</div>
+              <div className="text-sm font-semibold text-[#1a1408]">@{winner.handle}</div>
             </div>
           </div>
         )}
@@ -176,7 +176,7 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
             "btn mt-3 w-full border",
             watching
               ? "border-ember/30 bg-ember/10 text-ember"
-              : "border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06]"
+              : "border-[#3c2d0f]/15 bg-[#3c2d0f]/[0.05] text-[#1a1408]/70 hover:bg-white/[0.06]"
           )}
         >
           <Heart size={15} className={watching ? "fill-current" : ""} />
@@ -186,10 +186,10 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
 
       <div className="panel p-5">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 font-display text-sm font-bold text-white">
+          <h3 className="flex items-center gap-2 font-display text-sm font-bold text-[#1a1408]">
             <Radio size={15} className="text-mint" /> Live bid feed
           </h3>
-          <span className="flex items-center gap-1 text-xs text-white/35">
+          <span className="flex items-center gap-1 text-xs text-[#1a1408]/35">
             <Eye size={12} /> updating live
           </span>
         </div>

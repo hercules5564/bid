@@ -10,6 +10,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        parchment: "#f3ecdd",
+        sand: "#e7dcc0",
+        cream: "#faf6ec",
         ink: {
           950: "#0a0a0c",
           900: "#0f0f13",
@@ -46,7 +49,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Georgia", "Times New Roman", "serif"],
         sans: ["var(--font-body)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },

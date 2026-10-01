@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Gavel, Loader2 } from "lucide-react";
 
 const field =
-  "w-full rounded-xl border border-white/10 bg-ink-900/60 px-3.5 py-3 text-sm text-white placeholder:text-white/25 focus:border-gold/40 focus:outline-none";
+  "w-full rounded-xl border border-[#3c2d0f]/15 bg-white/70 px-3.5 py-3 text-sm text-[#1a1408] placeholder:text-[#1a1408]/40 focus:border-gold/40 focus:outline-none";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
@@ -54,10 +54,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <span className="mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-gold-soft to-gold-deep text-ink-950 shadow-glow-gold">
           <Gavel size={22} strokeWidth={2.5} />
         </span>
-        <h1 className="font-display text-2xl font-extrabold text-white">
+        <h1 className="font-display text-2xl font-extrabold text-[#1a1408]">
           {mode === "signup" ? "Join the house" : "Welcome back"}
         </h1>
-        <p className="mt-1 text-sm text-white/45">
+        <p className="mt-1 text-sm text-[#1a1408]/45">
           {mode === "signup" ? "Create an account to bid, watch and climb the boards." : "Sign in to keep bidding."}
         </p>
       </div>
@@ -79,7 +79,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
                 autoComplete="username"
               />
             </div>
-            <p className="-mt-1 text-xs text-white/35">
+            <p className="-mt-1 text-xs text-[#1a1408]/35">
               Handle: 3–30 letters, numbers or underscores — this is your public @name.
             </p>
           </>
@@ -96,7 +96,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             className={field}
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
           />
-          {mode === "signup" && <p className="mt-1 text-xs text-white/35">At least 6 characters.</p>}
+          {mode === "signup" && <p className="mt-1 text-xs text-[#1a1408]/35">At least 6 characters.</p>}
         </div>
 
         {error && <p className="rounded-lg bg-ember/10 px-3 py-2 text-sm font-medium text-ember">{error}</p>}
@@ -107,7 +107,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm text-white/45">
+      <p className="mt-4 text-center text-sm text-[#1a1408]/45">
         {mode === "signup" ? (
           <>
             Already have an account?{" "}
@@ -126,9 +126,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </p>
 
       {mode === "login" && (
-        <p className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-center text-xs text-white/40">
-          Demo · <span className="num text-white/60">rhea@gavl.live</span> /{" "}
-          <span className="num text-white/60">password123</span>
+        <p className="mt-4 rounded-xl border border-[#3c2d0f]/10 bg-[#3c2d0f]/[0.04] px-4 py-3 text-center text-xs text-[#1a1408]/40">
+          Demo · <span className="num text-[#1a1408]/60">rhea@gavl.live</span> /{" "}
+          <span className="num text-[#1a1408]/60">password123</span>
         </p>
       )}
     </div>

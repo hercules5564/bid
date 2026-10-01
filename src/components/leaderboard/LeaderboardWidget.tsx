@@ -23,14 +23,14 @@ export function LeaderboardWidget({ initial, moneyScore }: { initial: Leaderboar
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Trophy size={16} className="text-gold" />
-          <span className="font-display text-base font-bold text-white">This Week&apos;s Top Bidders</span>
+          <span className="font-display text-base font-bold text-[#1a1408]">This Week&apos;s Top Bidders</span>
         </div>
-        <Link href="/leaderboards" className="group inline-flex items-center gap-1 text-xs text-white/45 hover:text-gold">
+        <Link href="/leaderboards" className="group inline-flex items-center gap-1 text-xs text-[#1a1408]/45 hover:text-gold">
           Full boards <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
       {board.entries.length === 0 ? (
-        <p className="py-6 text-center text-sm text-white/35">No ranked bidders yet — win a lot to appear here.</p>
+        <p className="py-6 text-center text-sm text-[#1a1408]/35">No ranked bidders yet — win a lot to appear here.</p>
       ) : (
         <div className="flex flex-col gap-1.5">
           {board.entries.slice(0, 5).map((e) => (
@@ -39,7 +39,7 @@ export function LeaderboardWidget({ initial, moneyScore }: { initial: Leaderboar
         </div>
       )}
       {board.you && !board.entries.slice(0, 5).some((e) => e.user.id === board.you!.user.id) && (
-        <div className="mt-2 border-t border-white/[0.06] pt-2">
+        <div className="mt-2 border-t border-[#3c2d0f]/10 pt-2">
           <LeaderboardRow entry={board.you} moneyScore={moneyScore} highlight />
         </div>
       )}

@@ -43,9 +43,9 @@ export function StatusPill({ status }: { status: string }) {
   if (status === "ENDING_SOON")
     return <span className="chip animate-pulse border-ember/40 bg-ember/10 text-ember">ENDING SOON</span>;
   if (status === "SOLD") return <span className="chip border-gold/30 bg-gold/10 text-gold">SOLD</span>;
-  if (status === "UNSOLD") return <span className="chip text-white/40">UNSOLD</span>;
-  if (status === "SCHEDULED") return <span className="chip text-white/50">SCHEDULED</span>;
-  return <span className="chip text-white/40">CLOSED</span>;
+  if (status === "UNSOLD") return <span className="chip text-[#1a1408]/40">UNSOLD</span>;
+  if (status === "SCHEDULED") return <span className="chip text-[#1a1408]/50">SCHEDULED</span>;
+  return <span className="chip text-[#1a1408]/40">CLOSED</span>;
 }
 
 const medalColor = ["", "text-medal-gold", "text-medal-silver", "text-medal-bronze"];
@@ -66,14 +66,14 @@ export function RankBadge({ rank }: { rank: number }) {
     );
   }
   return (
-    <span className="grid h-9 w-9 place-items-center rounded-xl border border-white/8 bg-white/[0.03] text-sm font-semibold num text-white/45">
+    <span className="grid h-9 w-9 place-items-center rounded-xl border border-[#3c2d0f]/10 bg-[#3c2d0f]/[0.05] text-sm font-semibold num text-[#1a1408]/45">
       {rank}
     </span>
   );
 }
 
 export function medalTextColor(rank: number) {
-  return medalColor[rank] ?? "text-white/60";
+  return medalColor[rank] ?? "text-[#1a1408]/60";
 }
 
 export function Sparkline() {

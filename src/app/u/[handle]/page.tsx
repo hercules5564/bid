@@ -28,8 +28,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
       <div className="panel mb-6 flex flex-col items-start gap-5 p-6 sm:flex-row sm:items-center">
         <Avatar src={user.avatar} name={user.name} size="lg" ring className="!h-20 !w-20 !text-2xl" />
         <div className="flex-1">
-          <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">{user.name}</h1>
-          <p className="text-sm text-white/45">@{user.handle}</p>
+          <h1 className="font-display text-2xl font-extrabold text-[#1a1408] sm:text-3xl">{user.name}</h1>
+          <p className="text-sm text-[#1a1408]/45">@{user.handle}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {placements
               .filter((p) => p.rank != null)
@@ -38,7 +38,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
                   key={p.period}
                   className={cn(
                     "chip gap-1.5",
-                    p.rank === 1 ? "border-medal-gold/40 bg-medal-gold/10 text-medal-gold" : "text-white/60"
+                    p.rank === 1 ? "border-medal-gold/40 bg-medal-gold/10 text-medal-gold" : "text-[#1a1408]/60"
                   )}
                 >
                   {p.rank === 1 && <Crown size={12} />}
@@ -46,7 +46,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ handle
                 </span>
               ))}
             {placements.every((p) => p.rank == null) && (
-              <span className="chip text-white/40">Unranked — win a lot to climb the boards</span>
+              <span className="chip text-[#1a1408]/40">Unranked — win a lot to climb the boards</span>
             )}
           </div>
         </div>

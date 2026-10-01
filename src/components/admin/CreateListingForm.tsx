@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, PlusSquare } from "lucide-react";
+import { LayoutGrid, Loader2, PlusSquare, Timer } from "lucide-react";
+import { StyledSelect } from "@/components/ui/StyledSelect";
 
 type Cat = { name: string; slug: string };
-const field = "w-full rounded-xl border border-white/10 bg-ink-900/60 px-3 py-2.5 text-sm text-white placeholder:text-white/25 focus:border-gold/40 focus:outline-none";
-const label = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-white/40";
+const field = "w-full rounded-xl border border-[#3c2d0f]/15 bg-white/70 px-3 py-2.5 text-sm font-medium text-[#1a1408] placeholder:font-normal placeholder:text-[#1a1408]/40 transition-all duration-200 hover:border-[#3c2d0f]/30 hover:bg-white focus:border-gold/60 focus:bg-white focus:shadow-glow-gold focus:outline-none focus:ring-2 focus:ring-gold/20";
+const label = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-[#1a1408]/40";
 
 const SAMPLE = "https://picsum.photos/seed/gavl-new/900/675";
 
@@ -14,6 +15,7 @@ export function CreateListingForm({ categories }: { categories: Cat[] }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [duration, setDuration] = useState("DAILY");
+  const [cat, setCat] = useState(categories[0]?.slug ?? "");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -67,21 +69,33 @@ export function CreateListingForm({ categories }: { categories: Cat[] }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={label}>Category</label>
-          <select name="categorySlug" required className={field}>
-            {categories.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <StyledSelect
+            ariaLabel="Listing category"
+            icon={<LayoutGrid size={15} />}
+            value={cat}
+            onChange={setCat}
+            filledValue="__none__"
+            className="w-full"
+            options={categories.map((c) => ({ value: c.slug, label: c.name }))}
+          />
+          {/* hidden input keeps native form submission working */}
+          <input type="hidden" name="categorySlug" value={cat} />
         </div>
         <div>
           <label className={label}>Duration</label>
-          <select name="durationType" value={duration} onChange={(e) => setDuration(e.target.value)} className={field}>
-            <option value="HOURLY">Flash (hourly)</option>
-            <option value="DAILY">Daily (24h)</option>
-            <option value="WEEKLY">Weekly (7d)</option>
-          </select>
+          <StyledSelect
+            ariaLabel="Listing duration"
+            icon={<Timer size={15} />}
+            value={duration}
+            filledValue="__none__"
+            onChange={setDuration}
+            className="w-full"
+            options={[
+              { value: "HOURLY", label: "Flash · hourly" },
+              { value: "DAILY", label: "Daily · 24h" },
+              { value: "WEEKLY", label: "Weekly · 7d" },
+            ]}
+          />
         </div>
       </div>
 
@@ -93,7 +107,7 @@ export function CreateListingForm({ categories }: { categories: Cat[] }) {
       <div>
         <label className={label}>Image URLs — one per line</label>
         <textarea name="images" rows={2} placeholder={SAMPLE} className={field} />
-        <p className="mt-1 text-xs text-white/30">Leave blank to use a placeholder image.</p>
+        <p className="mt-1 text-xs text-[#1a1408]/30">Leave blank to use a placeholder image.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

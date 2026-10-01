@@ -10,7 +10,7 @@ import type { BidItem } from "@/types";
 export function BidFeed({ bids, currentUserId }: { bids: BidItem[]; currentUserId?: string | null }) {
   if (bids.length === 0) {
     return (
-      <div className="grid place-items-center py-10 text-center text-sm text-white/35">
+      <div className="grid place-items-center py-10 text-center text-sm text-[#1a1408]/35">
         No bids yet — be the one to open the floor.
       </div>
     );
@@ -37,7 +37,7 @@ export function BidFeed({ bids, currentUserId }: { bids: BidItem[]; currentUserI
               <Avatar src={b.bidder.avatar} name={b.bidder.handle} size="sm" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold text-white/90">
+                  <span className="truncate text-sm font-semibold text-[#1a1408]/90">
                     {mine ? "You" : `@${b.bidder.handle}`}
                   </span>
                   {i === 0 && b.isWinning && (
@@ -46,9 +46,9 @@ export function BidFeed({ bids, currentUserId }: { bids: BidItem[]; currentUserI
                     </span>
                   )}
                 </div>
-                <span className="text-[0.68rem] text-white/35 num">{timeAgo(b.createdAt)}</span>
+                <span className="text-[0.68rem] text-[#1a1408]/35 num">{timeAgo(b.createdAt)}</span>
               </div>
-              <span className={cn("num text-sm font-bold", i === 0 ? "text-gold" : "text-white/70")}>
+              <span className={cn("num text-sm font-bold", i === 0 ? "text-gold" : "text-[#1a1408]/70")}>
                 {formatMoney(b.amount)}
               </span>
             </motion.li>

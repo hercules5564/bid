@@ -56,10 +56,10 @@ export function ShowdownHero({ data }: { data: ShowdownHeroData }) {
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-gold">
             <Swords size={13} /> Weekly Showdown
           </div>
-          <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight tracking-tight text-[#faf6ec] sm:text-4xl lg:text-5xl">
             {data.title}
           </h1>
-          <p className="mt-2 text-sm text-white/50">
+          <p className="mt-2 text-sm leading-relaxed text-white/60">
             The single most valuable lot on Gavl this week · {data.categoryName}
           </p>
 
@@ -78,17 +78,17 @@ export function ShowdownHero({ data }: { data: ShowdownHeroData }) {
             <Link href="/showdown" className="btn-gold">
               <Gavel size={16} /> Enter the Showdown
             </Link>
-            <span className="chip text-white/60">
+            <span className="chip border-white/10 bg-white/[0.06] text-white/70">
               <Users size={13} /> {bidders} bidders
             </span>
-            <span className="chip text-white/60">
+            <span className="chip border-white/10 bg-white/[0.06] text-white/70">
               <Flame size={13} className="text-ember" /> {bidCount} bids
             </span>
           </div>
         </div>
 
-        <Link href="/showdown" className="group relative hidden overflow-hidden rounded-2xl border border-white/10 lg:block">
-          <div className="aspect-[4/3] w-full overflow-hidden bg-ink-800">
+        <Link href="/showdown" className="group relative hidden overflow-hidden rounded-2xl border border-[#3c2d0f]/15 lg:block">
+          <div className="aspect-[4/3] w-full overflow-hidden bg-sand">
             {data.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -97,13 +97,13 @@ export function ShowdownHero({ data }: { data: ShowdownHeroData }) {
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
             ) : (
-              <div className="grid h-full place-items-center text-white/15">
+              <div className="grid h-full place-items-center text-[#1a1408]/15">
                 <Gavel size={56} />
               </div>
             )}
           </div>
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-ink-950 to-transparent p-4">
-            <span className="text-sm font-semibold text-white">View the lot</span>
+            <span className="text-sm font-semibold text-white/85">View the lot</span>
             <ArrowRight size={16} className="text-gold transition-transform group-hover:translate-x-1" />
           </div>
         </Link>

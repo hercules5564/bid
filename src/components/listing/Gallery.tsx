@@ -9,12 +9,12 @@ export function Gallery({ images, title }: { images: string[]; title: string }) 
 
   return (
     <div>
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.07] bg-ink-800">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-[#3c2d0f]/15 bg-sand">
         {list[active] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={list[active]} alt={title} className="h-full w-full object-cover" />
         ) : (
-          <div className="grid h-full place-items-center text-white/15">
+          <div className="grid h-full place-items-center text-[#1a1408]/15">
             <Gavel size={56} />
           </div>
         )}
@@ -29,7 +29,7 @@ export function Gallery({ images, title }: { images: string[]; title: string }) 
               onClick={() => setActive(i)}
               className={cn(
                 "relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border transition-all",
-                i === active ? "border-gold ring-1 ring-gold/40" : "border-white/10 opacity-60 hover:opacity-100"
+                i === active ? "border-gold ring-1 ring-gold/40" : "border-[#3c2d0f]/15 opacity-60 hover:opacity-100"
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
