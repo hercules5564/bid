@@ -23,11 +23,11 @@ const STEPS = [
 
 export function ShowcaseSection({ board, moneyScore }: { board: LeaderboardBoard; moneyScore: boolean }) {
   return (
-    <section className="border-y border-white/[0.06] bg-white/[0.015] py-16 sm:py-20">
+    <section className="border-y border-[#3c2d0f]/10 bg-white/[0.015] py-16 sm:py-20">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
         <div>
           <div className="label-caps mb-3">How it plays</div>
-          <h2 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-[#1a1408] sm:text-4xl">
             From first bid to leaderboard glory in three moves.
           </h2>
 
@@ -36,8 +36,8 @@ export function ShowcaseSection({ board, moneyScore }: { board: LeaderboardBoard
               <div key={s.n} className="flex gap-5">
                 <div className="num font-mono text-sm font-bold leading-7 text-gold/60">{s.n}</div>
                 <div>
-                  <h3 className="font-display text-lg font-bold text-white">{s.title}</h3>
-                  <p className="mt-1.5 max-w-md text-sm leading-relaxed text-white/50">{s.body}</p>
+                  <h3 className="font-display text-lg font-bold text-[#1a1408]">{s.title}</h3>
+                  <p className="mt-1.5 max-w-md text-sm leading-relaxed text-[#1a1408]/50">{s.body}</p>
                 </div>
               </div>
             ))}

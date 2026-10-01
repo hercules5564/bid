@@ -19,8 +19,8 @@ export default async function LeaderboardsPage() {
         <div className="label-caps mb-1 flex items-center gap-1.5">
           <Trophy size={13} className="text-gold" /> The rankings
         </div>
-        <h1 className="font-display text-3xl font-extrabold text-white">Leaderboards</h1>
-        <p className="mt-1 text-sm text-white/50">
+        <h1 className="font-display text-3xl font-extrabold text-[#1a1408]">Leaderboards</h1>
+        <p className="mt-1 text-sm text-[#1a1408]/50">
           Today, this week, this month, and the all-time Hall of Fame. Updates the moment an auction closes.
         </p>
       </div>

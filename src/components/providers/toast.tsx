@@ -49,12 +49,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             >
               <span className="mt-0.5 shrink-0">{t.icon ?? toneIcon[t.tone ?? "gold"]}</span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-white">{t.title}</p>
-                {t.body && <p className="mt-0.5 text-xs leading-snug text-white/55">{t.body}</p>}
+                <p className="text-sm font-semibold text-[#1a1408]">{t.title}</p>
+                {t.body && <p className="mt-0.5 text-xs leading-snug text-[#1a1408]/55">{t.body}</p>}
               </div>
               <button
                 onClick={() => setToasts((cur) => cur.filter((x) => x.id !== t.id))}
-                className="shrink-0 text-white/30 transition-colors hover:text-white/70"
+                className="shrink-0 text-[#1a1408]/30 transition-colors hover:text-[#1a1408]/70"
                 aria-label="Dismiss"
               >
                 <X size={14} />

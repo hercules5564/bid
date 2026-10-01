@@ -92,6 +92,7 @@ export type OrderItem = {
   contactEmail: string | null;
   contactPhone: string | null;
   shipTo: string | null;
+  txRef: string | null;
   listing: {
     id: string;
     title: string;

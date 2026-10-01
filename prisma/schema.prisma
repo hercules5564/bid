@@ -218,6 +218,9 @@ model Order {
   contactPhone String?
   shipTo       String? // address / pickup location
 
+  // Buyer-supplied proof of the USDT escrow transfer (Tron txid, 64 hex chars).
+  txRef String?
+
   createdAt DateTime @default(now())
 
   @@index([buyerId, status])

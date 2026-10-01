@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { invalidate } from "@/lib/cache";
-import { charge, paymentProviderLabel } from "./payments";
+import { charge, isValidTronTxid, paymentProviderLabel } from "./payments";
 import { notify } from "./notifications";
 import type { Prisma, OrderStatus } from "@prisma/client";
 
@@ -15,6 +15,7 @@ const ORDER_SELECT = {
   contactEmail: true,
   contactPhone: true,
   shipTo: true,
+  txRef: true,
   listing: {
     select: {
       id: true,
@@ -36,6 +37,7 @@ export type OrderDTO = {
   contactEmail: string | null;
   contactPhone: string | null;
   shipTo: string | null;
+  txRef: string | null;
   listing: {
     id: string;
     title: string;
@@ -56,6 +58,7 @@ function toDTO(o: Prisma.OrderGetPayload<{ select: typeof ORDER_SELECT }>): Orde
     contactEmail: o.contactEmail,
     contactPhone: o.contactPhone,
     shipTo: o.shipTo,
+    txRef: o.txRef,
     listing: {
       id: o.listing.id,
       title: o.listing.title,
@@ -120,6 +123,8 @@ export type PayOrderInput = {
   contactEmail?: string;
   contactPhone?: string;
   shipTo?: string;
+  /** Tron txid proving the buyer sent USDT to escrow. */
+  txRef?: string;
 };
 
 export type PayOrderResult =
@@ -143,6 +148,14 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
     return { ok: false, code: "INVALID", message: "Please fill in your contact + delivery details." };
   }
 
+  if (!isValidTronTxid(input.txRef)) {
+    return {
+      ok: false,
+      code: "INVALID_TXREF",
+      message: "Send the USDT to the escrow address first, then paste the 64-character transaction hash.",
+    };
+  }
+
   const order = await prisma.order.findUnique({
     where: { id: input.orderId },
     select: {
@@ -161,12 +174,13 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
   if (order.status === "CANCELLED")
     return { ok: false, code: "CANCELLED", message: "This order was cancelled." };
 
-  // 1. Charge via the (currently sandbox) provider.
+  // 1. Verify the buyer's transfer proof with the payment provider.
   const charge_ = await charge({
     amount: order.amount,
     description: `Gavl · ${order.listing.title}`,
     contactEmail: input.contactEmail,
     contactPhone: input.contactPhone,
+    txRef: input.txRef.trim(),
   });
   if (!charge_.ok) return charge_;
 
@@ -180,6 +194,7 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
       contactEmail: input.contactEmail,
       contactPhone: input.contactPhone,
       shipTo: input.shipTo,
+      txRef: charge_.txRef,
     },
     select: { ...ORDER_SELECT, buyer: { select: { id: true, handle: true } } },
   });
@@ -191,7 +206,7 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
     userId: order.buyerId,
     type: "ORDER_PAID",
     title: "Payment complete 🎉",
-    body: `You paid for "${order.listing.title}". Check your orders for the details.`,
+    body: `You paid for "${order.listing.title}". Tx ${charge_.txRef.slice(0, 10)}… — check your orders for the details.`,
     listingId: order.listing.id,
   });
   await notify({

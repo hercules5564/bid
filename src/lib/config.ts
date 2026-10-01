@@ -28,3 +28,22 @@ export const SCORING_LABEL: Record<ScoringMetric, string> = {
   BID_VOLUME: "Total bid volume",
   BID_COUNT: "Number of bids",
 };
+
+/**
+ * USDT escrow + platform fee. Buyer pays Gavl, Gavl pays seller after delivery.
+ * Only USDT is accepted (no BTC/ETH for now).
+ */
+export const escrowConfig = {
+  // 5% platform fee — deducted from seller payout after delivery.
+  feePercent: num(process.env.PLATFORM_FEE_PERCENT, 5),
+  // Your receiving address (Bybit USDT-TRC20). Empty until you paste it in .env.
+  usdtAddress: process.env.ESCROW_USDT_ADDRESS ?? "",
+  network: process.env.ESCROW_NETWORK ?? "TRC20 (Tron)",
+  currency: "USDT",
+};
+
+/** Split a sale (paise) into platform fee + seller payout. */
+export function splitFee(amountPaise: number) {
+  const fee = Math.round((amountPaise * escrowConfig.feePercent) / 100);
+  return { fee, sellerPayout: amountPaise - fee, feePercent: escrowConfig.feePercent };
+}

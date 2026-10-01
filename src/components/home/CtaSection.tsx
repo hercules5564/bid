@@ -9,18 +9,18 @@ export function CtaSection() {
           <div className="absolute left-1/2 top-0 h-64 w-[500px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-gold/[0.12] blur-[100px]" />
         </div>
 
-        <h2 className="relative font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
-          The next lot is already on the floor.
+        <h2 className="relative font-display text-4xl font-extrabold tracking-tight text-[#faf6ec] sm:text-5xl">
+          The next lot is <span className="text-gradient-gold">already on the floor.</span>
         </h2>
-        <p className="relative mx-auto mt-4 max-w-xl text-white/50">
+        <p className="relative mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/60">
           Create a free account, place your first bid in seconds, and watch the leaderboards climb.
         </p>
 
         <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/signup" className="btn-gold">
+          <Link href="/signup" className="btn-gold shadow-glow-gold ring-1 ring-gold/40">
             <Gavel size={16} /> Join the floor
           </Link>
-          <Link href="/showdown" className="btn-ghost">
+          <Link href="/showdown" className="btn-ghost border-white/20">
             See the Showdown <ArrowRight size={16} className="opacity-50" />
           </Link>
         </div>

@@ -18,6 +18,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     contactEmail: typeof body?.contactEmail === "string" ? body.contactEmail : undefined,
     contactPhone: typeof body?.contactPhone === "string" ? body.contactPhone : undefined,
     shipTo: typeof body?.shipTo === "string" ? body.shipTo : undefined,
+    txRef: typeof body?.txRef === "string" ? body.txRef : undefined,
   });
 
   return NextResponse.json(result, { status: result.ok ? 200 : 400 });

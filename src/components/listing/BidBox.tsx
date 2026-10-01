@@ -36,7 +36,7 @@ export function BidBox({
   if (!user) {
     return (
       <div className="panel-flat p-4 text-center">
-        <p className="text-sm text-white/60">Sign in to place a bid.</p>
+        <p className="text-sm text-[#1a1408]/60">Sign in to place a bid.</p>
         <Link href="/login" className="btn-gold mt-3 w-full">
           Sign in to bid
         </Link>
@@ -46,7 +46,7 @@ export function BidBox({
 
   if (isOwn) {
     return (
-      <div className="panel-flat flex items-center justify-center gap-2 p-4 text-sm text-white/45">
+      <div className="panel-flat flex items-center justify-center gap-2 p-4 text-sm text-[#1a1408]/45">
         <Lock size={15} /> This is your listing.
       </div>
     );
@@ -54,7 +54,7 @@ export function BidBox({
 
   if (disabled) {
     return (
-      <div className="panel-flat flex items-center justify-center gap-2 p-4 text-sm text-white/45">
+      <div className="panel-flat flex items-center justify-center gap-2 p-4 text-sm text-[#1a1408]/45">
         <Lock size={15} /> Bidding is closed.
       </div>
     );
@@ -114,7 +114,7 @@ export function BidBox({
               touched.current = true;
               setAmount(toRupees(p));
             }}
-            className="chip border-white/10 hover:border-gold/40 hover:text-gold"
+            className="chip border-[#3c2d0f]/15 hover:border-gold/40 hover:text-gold"
           >
             {formatMoneyShort(p)}
           </button>
@@ -122,8 +122,8 @@ export function BidBox({
       </div>
 
       <div className="mt-3 flex items-stretch gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-xl border border-white/10 bg-ink-900/60 px-3">
-          <span className="text-white/40">₹</span>
+        <div className="flex flex-1 items-center gap-2 rounded-xl border border-[#3c2d0f]/15 bg-white/70 px-3">
+          <span className="text-[#1a1408]/40">₹</span>
           <input
             type="number"
             inputMode="numeric"
@@ -133,7 +133,7 @@ export function BidBox({
               touched.current = true;
               setAmount(Number(e.target.value));
             }}
-            className="num w-full bg-transparent py-2.5 text-lg font-bold text-white focus:outline-none"
+            className="num w-full bg-transparent py-2.5 text-lg font-bold text-[#1a1408] focus:outline-none"
           />
         </div>
         <button
@@ -146,8 +146,8 @@ export function BidBox({
         </button>
       </div>
 
-      <p className="mt-2 text-xs text-white/40">
-        Minimum next bid <span className="num text-white/70">{formatMoney(minNextBid)}</span>
+      <p className="mt-2 text-xs text-[#1a1408]/40">
+        Minimum next bid <span className="num text-[#1a1408]/70">{formatMoney(minNextBid)}</span>
       </p>
 
       {error && <p className="mt-2 rounded-lg bg-ember/10 px-3 py-2 text-xs font-medium text-ember">{error}</p>}

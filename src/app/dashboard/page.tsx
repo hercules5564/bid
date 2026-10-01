@@ -27,8 +27,8 @@ export default async function DashboardPage() {
         <Avatar src={user.avatar} name={user.name} size="lg" ring />
         <div>
           <div className="label-caps">Your dashboard</div>
-          <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">{user.name}</h1>
-          <p className="text-sm text-white/45">@{user.handle}</p>
+          <h1 className="font-display text-2xl font-extrabold text-[#1a1408] sm:text-3xl">{user.name}</h1>
+          <p className="text-sm text-[#1a1408]/45">@{user.handle}</p>
         </div>
       </div>
 
@@ -53,23 +53,23 @@ export default async function DashboardPage() {
               <Link
                 key={o.id}
                 href={`/checkout/${o.id}`}
-                className="group flex items-center gap-4 rounded-2xl border border-ember/20 bg-ink-850/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember/40"
+                className="group flex items-center gap-4 rounded-2xl border border-ember/20 bg-white/70 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-ember/40"
               >
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-ink-800">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-sand">
                   {o.listing.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={o.listing.image} alt={o.listing.title} className="h-full w-full object-cover" />
                   ) : (
-                    <Gavel size={22} className="mx-auto mt-5 text-white/20" />
+                    <Gavel size={22} className="mx-auto mt-5 text-[#1a1408]/20" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-display text-sm font-bold text-white group-hover:text-gold">
+                  <h3 className="truncate font-display text-sm font-bold text-[#1a1408] group-hover:text-gold">
                     {o.listing.title}
                   </h3>
                   <p className="num mt-0.5 text-sm font-semibold text-ember">{formatMoney(o.amount)}</p>
                 </div>
-                <ArrowRight size={16} className="shrink-0 text-white/30 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight size={16} className="shrink-0 text-[#1a1408]/30 transition-transform group-hover:translate-x-0.5" />
               </Link>
             ))}
           </div>
