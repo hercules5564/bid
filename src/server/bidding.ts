@@ -9,6 +9,7 @@ import {
 } from "@/lib/socket-emit";
 import { invalidate } from "@/lib/cache";
 import { notify } from "./notifications";
+import { holdForBid, releaseHold, captureHold } from "./wallet";
 
 export type BidErrorCode =
   | "NOT_FOUND"
@@ -18,7 +19,8 @@ export type BidErrorCode =
   | "ALREADY_LEADING"
   | "TOO_LOW"
   | "INVALID"
-  | "NO_BUYNOW";
+  | "NO_BUYNOW"
+  | "INSUFFICIENT_BALANCE";
 
 export type PlaceBidResult =
   | {
@@ -124,11 +126,26 @@ export async function placeBid(input: {
     if (currentWinner?.userId === input.userId)
       return { ok: false as const, code: "ALREADY_LEADING" as const, message: "You're already the top bidder." };
 
+    // Wallet: the bid must be covered by balance - held. The hold replaces any
+    // previous hold by this bidder on the same lot (re-bid tops it up).
+    const hold = await holdForBid(tx as never, { userId: input.userId, listingId: listing.id, amount });
+    if (!hold.ok) {
+      return {
+        ok: false as const,
+        code: "INSUFFICIENT_BALANCE" as const,
+        message: `Insufficient wallet balance — you can cover ₹${Math.round(hold.available / 100).toLocaleString("en-IN")}. Top up to bid higher.`,
+      };
+    }
+
     // Demote the previous winning bid, crown the new one.
     await tx.bid.updateMany({
       where: { listingId: listing.id, isWinning: true },
       data: { isWinning: false },
     });
+    // The dethroned leader's money is freed instantly.
+    if (currentWinner && currentWinner.userId !== input.userId) {
+      await releaseHold(tx as never, { userId: currentWinner.userId, listingId: listing.id });
+    }
     const bid = await tx.bid.create({
       data: { listingId: listing.id, userId: input.userId, amount, isWinning: true },
       select: { id: true },
@@ -293,6 +310,17 @@ export async function buyNow(input: { listingId: string; userId: string }): Prom
 
     const price = listing.buyNowPrice;
 
+    // Wallet must cover the buyout — then it is captured immediately, so a
+    // Buy Now sale is born PAID with no checkout step.
+    const hold = await holdForBid(tx as never, { userId: input.userId, listingId: listing.id, amount: price });
+    if (!hold.ok) {
+      return {
+        ok: false as const,
+        code: "INSUFFICIENT_BALANCE" as const,
+        message: `Insufficient wallet balance — you can cover ₹${Math.round(hold.available / 100).toLocaleString("en-IN")}. Top up to buy.`,
+      };
+    }
+
     const bidderRows = await tx.bid.findMany({
       where: { listingId: listing.id },
       distinct: ["userId"],
@@ -317,6 +345,8 @@ export async function buyNow(input: { listingId: string; userId: string }): Prom
     });
 
     // Buy-now sales open an Order immediately (idempotent via unique listingId).
+    // Wallet-captured, so it starts PAID; legacy no-hold buys stay PENDING.
+    const { captured } = await captureHold(tx as never, { userId: input.userId, listingId: listing.id });
     await tx.order.upsert({
       where: { listingId: listing.id },
       update: {},
@@ -325,8 +355,16 @@ export async function buyNow(input: { listingId: string; userId: string }): Prom
         buyerId: input.userId,
         sellerId: listing.sellerId,
         amount: price,
+        ...(captured > 0
+          ? { status: "PAID" as never, paidAt: now, provider: "wallet", providerRef: "wallet:capture" }
+          : {}),
       },
     });
+    // Everyone else's money is freed — the lot is gone.
+    for (const b of bidderRows) {
+      if (b.userId === input.userId) continue;
+      await releaseHold(tx as never, { userId: b.userId, listingId: listing.id });
+    }
 
     // Bidder + winner stats in one shot.
     await tx.user.update({

@@ -38,6 +38,17 @@ enum NotificationType {
   BID_PLACED
   ORDER_PAID
   ORDER_CANCELLED
+  REVIEW_RECEIVED
+  DISPUTE_OPENED
+  DISPUTE_RESOLVED
+  WALLET_TOPUP
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED_REFUNDED
+  RESOLVED_REJECTED
+  CANCELLED
 }
 
 enum OrderStatus {
@@ -68,6 +79,10 @@ model User {
   totalWonValue   Int @default(0) // sum of winning bid amounts, minor units
   highestSingleBid Int @default(0)
 
+  // Seller reputation, recomputed whenever a buyer leaves a review.
+  sellerRatingAvg   Float @default(0) // 0 = unrated, else 1..5
+  sellerRatingCount Int   @default(0)
+
   bids          Bid[]
   listings      Listing[]      @relation("SellerListings")
   wonListings   Listing[]      @relation("WonListings")
@@ -75,6 +90,12 @@ model User {
   notifications Notification[]
   boughtOrders  Order[]        @relation("BuyerOrders")
   soldOrders    Order[]        @relation("SellerOrders")
+  sellerReviews Review[]       @relation("SellerReviews")
+  buyerReviews  Review[]       @relation("BuyerReviews")
+  disputes      Dispute[]
+  wallet        Wallet?
+  walletHolds   WalletHold[]
+  walletTxns    WalletTransaction[]
 
   @@index([totalWonValue])
 }
@@ -121,8 +142,11 @@ model Listing {
   watchers      Watchlist[]
   notifications Notification[]
   order         Order?
+  reviews       Review[]
+  walletHolds   WalletHold[]
 
   @@index([status, endsAt])
+  @@index([status, winnerId, endsAt])
   @@index([durationType, status])
   @@index([categoryId])
 }
@@ -221,8 +245,114 @@ model Order {
   // Buyer-supplied proof of the USDT escrow transfer (Tron txid, 64 hex chars).
   txRef String?
 
+  // Which payment provider settled the order ("sandbox" USDT manual flow or
+  // "razorpay"). providerRef holds the gateway payment id for reconciliation.
+  provider    String?
+  providerRef String?
+
+  review  Review?
+  dispute Dispute?
+
   createdAt DateTime @default(now())
 
   @@index([buyerId, status])
   @@index([sellerId, status])
+}
+
+// Buyer wallet: prepaid balance (paise) with per-listing holds. A bid is only
+// accepted when balance - held covers it; the winner's hold is captured the
+// moment the hammer falls, so winning lots auto-pay with no checkout step.
+// Demo funds are seeded for showcase; real-money operation needs PPI/legal
+// review (see README).
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance   Int      @default(0) // total credited, minor units
+  held      Int      @default(0) // sum of open holds, minor units
+  updatedAt DateTime @updatedAt
+}
+
+// One open hold per (user, listing) — always equals that user's current
+// leading bid on the lot. Released on outbid, captured on win.
+model WalletHold {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  amount    Int // minor units
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+}
+
+enum WalletTxType {
+  BONUS
+  TOPUP
+  HOLD
+  HOLD_INCREASE
+  RELEASE
+  CAPTURE
+  REFUND
+}
+
+// Append-only money trail. amount is always positive; the type says which way
+// it moved. balanceAfter/heldAfter snapshot the wallet for easy auditing.
+model WalletTransaction {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         WalletTxType
+  amount       Int // minor units, always positive
+  balanceAfter Int
+  heldAfter    Int
+  listingId    String?
+  orderId      String?
+  providerRef  String? @unique // USDT txid — globally one-use for top-ups
+  note         String?
+  createdAt    DateTime     @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// A buyer's rating of the seller for one completed (PAID) order. One review
+// per order — enforced by the unique orderId.
+model Review {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  sellerId  String
+  seller    User     @relation("SellerReviews", fields: [sellerId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     User     @relation("BuyerReviews", fields: [buyerId], references: [id], onDelete: Cascade)
+  rating    Int // 1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@index([sellerId, createdAt])
+  @@index([listingId])
+}
+
+// A buyer's complaint about a PAID order (item not delivered, not as
+// described, …). An admin resolves it: refund (order flipped to CANCELLED and
+// the refund transfer recorded in `resolution`) or reject (order stands).
+model Dispute {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  raisedById  String
+  raisedBy    User          @relation(fields: [raisedById], references: [id], onDelete: Cascade)
+  reason      String
+  details     String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  resolvedAt  DateTime?
+  resolvedById String?
+  createdAt   DateTime      @default(now())
+
+  @@index([status, createdAt])
 }

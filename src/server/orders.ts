@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { invalidate } from "@/lib/cache";
-import { charge, isValidTronTxid, paymentProviderLabel } from "./payments";
+import { charge, isValidTronTxid, paymentProviderLabel, queryBybitPayment } from "./payments";
 import { notify } from "./notifications";
 import type { Prisma, OrderStatus } from "@prisma/client";
 
@@ -16,6 +16,10 @@ const ORDER_SELECT = {
   contactPhone: true,
   shipTo: true,
   txRef: true,
+  provider: true,
+  providerRef: true,
+  review: { select: { rating: true, comment: true } },
+  dispute: { select: { id: true, status: true } },
   listing: {
     select: {
       id: true,
@@ -38,6 +42,10 @@ export type OrderDTO = {
   contactPhone: string | null;
   shipTo: string | null;
   txRef: string | null;
+  provider: string | null;
+  providerRef: string | null;
+  review: { rating: number; comment: string | null } | null;
+  dispute: { id: string; status: string } | null;
   listing: {
     id: string;
     title: string;
@@ -59,6 +67,10 @@ function toDTO(o: Prisma.OrderGetPayload<{ select: typeof ORDER_SELECT }>): Orde
     contactPhone: o.contactPhone,
     shipTo: o.shipTo,
     txRef: o.txRef,
+    provider: o.provider,
+    providerRef: o.providerRef,
+    review: o.review,
+    dispute: o.dispute,
     listing: {
       id: o.listing.id,
       title: o.listing.title,
@@ -184,29 +196,86 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
   });
   if (!charge_.ok) return charge_;
 
-  // 2. Persist the completed sale in one shot (idempotent via status guard).
+  // 2. Persist the completed sale (shared with the gateway flow below).
+  return finalizePaidOrder({
+    orderId: order.id,
+    buyerId: order.buyerId,
+    provider: "sandbox",
+    providerRef: charge_.txRef,
+    txRef: charge_.txRef,
+    contactName: input.contactName,
+    contactEmail: input.contactEmail,
+    contactPhone: input.contactPhone,
+    shipTo: input.shipTo,
+  });
+}
+
+export type SettleInput = {
+  orderId: string;
+  buyerId: string;
+  provider: string;
+  providerRef: string;
+  /** Legacy USDT txid column — kept populated for the manual escrow flow. */
+  txRef?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  shipTo?: string | null;
+};
+
+/**
+ * Flip a PENDING order to PAID in one shot (idempotent via status guard),
+ * then notify buyer + seller. Shared by the USDT flow and the Razorpay
+ * verify/webhook handlers. Contact fields are optional so the webhook —
+ * which has no form data — can still settle.
+ */
+export async function finalizePaidOrder(input: SettleInput): Promise<PayOrderResult> {
+  const order = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    select: {
+      id: true,
+      buyerId: true,
+      status: true,
+      listing: { select: { id: true, title: true } },
+    },
+  });
+  if (!order) return { ok: false, code: "NOT_FOUND", message: "Order not found." };
+  if (order.buyerId !== input.buyerId)
+    return { ok: false, code: "FORBIDDEN", message: "You can't pay for someone else's order." };
+  if (order.status === "PAID") {
+    const existing = await prisma.order.findUnique({ where: { id: order.id }, select: ORDER_SELECT });
+    if (!existing) return { ok: false, code: "NOT_FOUND", message: "Order not found." };
+    return { ok: true, order: toDTO(existing) };
+  }
+  if (order.status === "CANCELLED")
+    return { ok: false, code: "CANCELLED", message: "This order was cancelled." };
+
+  const data: Prisma.OrderUpdateInput = {
+    status: "PAID",
+    paidAt: new Date(),
+    provider: input.provider,
+    providerRef: input.providerRef,
+  };
+  if (input.txRef) data.txRef = input.txRef;
+  if (input.contactName) data.contactName = input.contactName;
+  if (input.contactEmail) data.contactEmail = input.contactEmail;
+  if (input.contactPhone) data.contactPhone = input.contactPhone;
+  if (input.shipTo) data.shipTo = input.shipTo;
+
   const updated = await prisma.order.update({
     where: { id: order.id },
-    data: {
-      status: "PAID",
-      paidAt: new Date(),
-      contactName: input.contactName,
-      contactEmail: input.contactEmail,
-      contactPhone: input.contactPhone,
-      shipTo: input.shipTo,
-      txRef: charge_.txRef,
-    },
+    data,
     select: { ...ORDER_SELECT, buyer: { select: { id: true, handle: true } } },
   });
 
-  invalidate(`orders:${input.userId}`, `orders:seller:${updated.listing.seller.id}`);
+  invalidate(`orders:${input.buyerId}`, `orders:seller:${updated.listing.seller.id}`);
 
-  // 3. Notify buyer + seller. Safe post-commit; fire-and-forget each.
+  const refShort = input.providerRef.length > 18 ? `${input.providerRef.slice(0, 10)}…` : input.providerRef;
   await notify({
     userId: order.buyerId,
     type: "ORDER_PAID",
     title: "Payment complete 🎉",
-    body: `You paid for "${order.listing.title}". Tx ${charge_.txRef.slice(0, 10)}… — check your orders for the details.`,
+    body: `You paid for "${order.listing.title}". Ref ${refShort} — check your orders for the details.`,
     listingId: order.listing.id,
   });
   await notify({
@@ -219,6 +288,77 @@ export async function payOrder(input: PayOrderInput): Promise<PayOrderResult> {
 
   const dto = toDTO(updated as never);
   return { ok: true, order: dto };
+}
+
+export type GatewayPayResult = PayOrderResult;
+
+/**
+ * Settle an order paid through Bybit Pay. The ONLY source of truth is a
+ * server-side query to Bybit for our order id — the client merely tells us
+ * to go check. Safe to poll/retry: an already-PAID order returns as-is.
+ */
+export async function settleBybitPayment(input: {
+  orderId: string;
+  userId: string;
+  payId?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  shipTo?: string;
+}): Promise<GatewayPayResult> {
+  if (!input.userId) return { ok: false, code: "AUTH", message: "Sign in first." };
+
+  const order = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    select: { id: true, buyerId: true, status: true },
+  });
+  if (!order) return { ok: false, code: "NOT_FOUND", message: "Order not found." };
+  if (order.buyerId !== input.userId)
+    return { ok: false, code: "FORBIDDEN", message: "You can't pay for someone else's order." };
+  if (order.status === "PAID") {
+    const existing = await prisma.order.findUnique({ where: { id: order.id }, select: ORDER_SELECT });
+    if (!existing) return { ok: false, code: "NOT_FOUND", message: "Order not found." };
+    return { ok: true, order: toDTO(existing) };
+  }
+  if (order.status === "CANCELLED")
+    return { ok: false, code: "CANCELLED", message: "This order was cancelled." };
+
+  if (
+    !input.contactName?.trim() ||
+    !input.contactEmail?.trim() ||
+    !input.contactPhone?.trim() ||
+    !input.shipTo?.trim()
+  ) {
+    return { ok: false, code: "INVALID", message: "Please fill in your contact + delivery details." };
+  }
+
+  // Ask Bybit directly — never trust the browser about money.
+  const status = await queryBybitPayment(order.id);
+  if (!status.ok) return status;
+  if (input.payId && status.payId !== input.payId) {
+    return { ok: false, code: "MISMATCH", message: "Payment doesn't match this order. Contact support." };
+  }
+  if (status.status !== "PAY_SUCCESS") {
+    return {
+      ok: false,
+      code: "NOT_PAID_YET",
+      message:
+        status.status === "TIMEOUT"
+          ? "This payment expired. Go back and generate a fresh Bybit QR."
+          : "Bybit hasn't confirmed the payment yet — scan the QR in your Bybit app, then retry.",
+    };
+  }
+
+  return finalizePaidOrder({
+    orderId: order.id,
+    buyerId: input.userId,
+    provider: "bybit",
+    providerRef: status.payId,
+    contactName: input.contactName,
+    contactEmail: input.contactEmail,
+    contactPhone: input.contactPhone,
+    shipTo: input.shipTo,
+  });
 }
 
 export type CancelOrderResult = { ok: true } | { ok: false; code: string; message: string };

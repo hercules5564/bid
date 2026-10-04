@@ -1,10 +1,163 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Check, Copy, Loader2, ShieldCheck, CheckCircle2, QrCode } from "lucide-react";
 import { formatMoney } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import type { OrderItem } from "@/types";
 import { cn } from "@/lib/cn";
+
+type BybitPayment = {
+  payId: string;
+  qrContent: string;
+  checkoutLink: string;
+  expireTime: number;
+  usdtAmount: string;
+};
+
+/** Pay with Bybit: scan the QR in the Bybit app. Polls until PAY_SUCCESS. */
+function BybitButton({
+  order,
+  contact,
+  onDone,
+}: {
+  order: OrderItem;
+  contact: { name: string; email: string; phone: string; address: string };
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [pay, setPay] = useState<BybitPayment | null>(null);
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stop = () => {
+    if (timer.current) clearInterval(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => stop, []);
+
+  async function checkStatus(p: BybitPayment) {
+    try {
+      const res = await fetch("/api/payments/bybit/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          payId: p.payId,
+          contactName: contact.name,
+          contactEmail: contact.email,
+          contactPhone: contact.phone,
+          shipTo: contact.address,
+        }),
+      }).then((r) => r.json());
+      if (res.ok) {
+        stop();
+        onDone();
+      }
+      // "pending" just means keep waiting — the manual button retries loudly.
+    } catch {
+      /* polling is best-effort */
+    }
+  }
+
+  async function start() {
+    if (!contact.name.trim() || !contact.email.trim() || !contact.phone.trim() || !contact.address.trim()) {
+      setError("Fill in your name, email, phone and delivery address below first.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/payments/bybit/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      }).then((r) => r.json());
+      if (!res.ok) {
+        setError(res.message || "Couldn't start the Bybit payment.");
+        return;
+      }
+      const p = res as BybitPayment;
+      setPay(p);
+      setChecking(true);
+      stop();
+      timer.current = setInterval(() => checkStatus(p), 3000);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (pay) {
+    return (
+      <div className="rounded-xl border border-gold/25 bg-gold/[0.06] p-4 text-center">
+        <div className="text-xs font-bold uppercase tracking-wide text-gold">
+          Pay {pay.usdtAmount} USDT with Bybit
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={pay.qrContent} alt="Scan with your Bybit app to pay" className="mx-auto mt-3 h-52 w-52 rounded-lg bg-white p-2" />
+        <p className="mt-2 text-xs text-[#1a1408]/55">
+          Scan with your Bybit app — or{" "}
+          <a href={pay.checkoutLink} target="_blank" rel="noreferrer" className="font-semibold text-gold hover:underline">
+            open the Bybit checkout
+          </a>
+          .
+        </p>
+        <p className="mt-1 flex items-center justify-center gap-1.5 text-xs text-[#1a1408]/40">
+          {checking && <Loader2 size={12} className="animate-spin" />}
+          Waiting for Bybit confirmation…
+        </p>
+        <div className="mt-3 flex justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => checkStatus(pay)}
+            className="rounded-xl border border-[#3c2d0f]/15 px-3 py-1.5 text-xs font-bold text-[#1a1408]/70 hover:border-gold/40"
+          >
+            I&apos;ve paid — check now
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              stop();
+              setPay(null);
+              setChecking(false);
+            }}
+            className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#1a1408]/50 hover:text-[#1a1408]"
+          >
+            Cancel
+          </button>
+        </div>
+        {error && <p className="mt-2 text-xs font-medium text-ember">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={start}
+        disabled={busy}
+        className="btn-gold w-full disabled:opacity-60"
+      >
+        {busy ? (
+          <>
+            <Loader2 size={16} className="animate-spin" /> Creating Bybit payment…
+          </>
+        ) : (
+          <>
+            <QrCode size={16} /> Pay <DualMoney paise={order.amount} short /> with Bybit
+          </>
+        )}
+      </button>
+      {error && (
+        <p className="mt-2 rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ember">{error}</p>
+      )}
+    </div>
+  );
+}
 
 export function CheckoutForm({
   order,
@@ -14,6 +167,7 @@ export function CheckoutForm({
   fee,
   sellerPayout,
   feePercent,
+  bybit,
 }: {
   order: OrderItem;
   providerLabel: string;
@@ -22,6 +176,8 @@ export function CheckoutForm({
   fee: number;
   sellerPayout: number;
   feePercent: number;
+  /** Show the Bybit Pay QR option — true once merchant credentials are set. */
+  bybit?: boolean;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", txRef: "" });
@@ -97,6 +253,23 @@ export function CheckoutForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      {bybit ? (
+        <>
+          <BybitButton
+            order={order}
+            contact={{ name: form.name, email: form.email, phone: form.phone, address: form.address }}
+            onDone={() => {
+              setState("done");
+              router.refresh();
+            }}
+          />
+          <div className="flex items-center gap-3 text-xs text-[#1a1408]/35">
+            <span className="h-px flex-1 bg-[#3c2d0f]/10" />
+            or pay manually with USDT
+            <span className="h-px flex-1 bg-[#3c2d0f]/10" />
+          </div>
+        </>
+      ) : null}
       {/* Step 1 — send */}
       <div className="rounded-xl border border-gold/25 bg-gold/[0.06] px-4 py-3 text-sm text-[#1a1408]/80">
         <div className="text-xs font-bold uppercase tracking-wide">
@@ -105,7 +278,7 @@ export function CheckoutForm({
         </div>
         <p className="mt-1.5 text-xs leading-relaxed text-[#1a1408]/60">
           Money comes to Gavl first. After delivery is confirmed, Gavl keeps {feePercent}% (
-          {formatMoney(fee)}) and sends {formatMoney(sellerPayout)} to the seller.
+          <DualMoney paise={fee} short />) and sends <DualMoney paise={sellerPayout} short /> to the seller.
         </p>
         {usdtAddress ? (
           <div className="mt-2 flex items-center gap-2 rounded-lg bg-black/[0.04] px-2.5 py-2">
@@ -216,7 +389,7 @@ export function CheckoutForm({
             <Loader2 size={16} className="animate-spin" /> Verifying transfer…
           </>
         ) : (
-          <>Confirm {formatMoney(order.amount)} transfer</>
+          <>Confirm <DualMoney paise={order.amount} short /> transfer</>
         )}
       </button>
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Bell, CheckCheck, Trophy, Zap, Gavel, Swords, Clock3, ReceiptText, XCircle } from "lucide-react";
+import { Bell, CheckCheck, Trophy, Zap, Gavel, Swords, Clock3, ReceiptText, XCircle, Star, Flag } from "lucide-react";
 import { useNotifications } from "@/components/providers/notifications";
 import { timeAgo } from "@/lib/time";
 import { cn } from "@/lib/cn";
@@ -14,6 +14,9 @@ const icon: Record<string, React.ReactNode> = {
   BID_PLACED: <Gavel size={15} className="text-mint" />,
   ORDER_PAID: <ReceiptText size={15} className="text-mint" />,
   ORDER_CANCELLED: <XCircle size={15} className="text-[#1a1408]/40" />,
+  REVIEW_RECEIVED: <Star size={15} className="text-gold" />,
+  DISPUTE_OPENED: <Flag size={15} className="text-ember" />,
+  DISPUTE_RESOLVED: <CheckCheck size={15} className="text-mint" />,
 };
 
 export function NotificationsPanel() {

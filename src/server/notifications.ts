@@ -9,7 +9,11 @@ type NotifKind =
   | "SHOWDOWN_STARTING"
   | "BID_PLACED"
   | "ORDER_PAID"
-  | "ORDER_CANCELLED";
+  | "ORDER_CANCELLED"
+  | "REVIEW_RECEIVED"
+  | "DISPUTE_OPENED"
+  | "DISPUTE_RESOLVED"
+  | "WALLET_TOPUP";
 
 /**
  * Persist a notification and push it live to the user's socket room.

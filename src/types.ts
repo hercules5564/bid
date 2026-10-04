@@ -93,6 +93,10 @@ export type OrderItem = {
   contactPhone: string | null;
   shipTo: string | null;
   txRef: string | null;
+  provider: string | null;
+  providerRef: string | null;
+  review: { rating: number; comment: string | null } | null;
+  dispute: { id: string; status: string } | null;
   listing: {
     id: string;
     title: string;

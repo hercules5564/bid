@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 import { formatMoney, formatMoneyShort } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import type { ListingSummary } from "@/types";
 import { DurationBadge, StatusPill } from "@/components/ui/primitives";
 import { CategoryIcon } from "@/components/ui/CategoryIcon";
@@ -57,7 +58,7 @@ export function ListingCard({ listing: l, className }: { listing: ListingSummary
         <div className="mt-3 flex items-end justify-between gap-2">
           <div>
             <div className="label-caps">Current bid</div>
-            <div className="num text-lg font-bold text-[#b8860b]">{formatMoney(l.currentPrice)}</div>
+            <div className="num text-lg font-bold text-[#b8860b]"><DualMoney paise={l.currentPrice} layout="sub" /></div>
           </div>
           <div className="text-right">
             <div className="label-caps">{closed ? "Result" : "Ends in"}</div>
@@ -72,7 +73,7 @@ export function ListingCard({ listing: l, className }: { listing: ListingSummary
         <div className="mt-3 flex items-center justify-between border-t border-[#3c2d0f]/10 pt-3 text-xs text-[#1a1408]/55">
           <span className="num">{l.bidCount} bids</span>
           <span>
-            min next <span className="num text-[#1a1408]/75">{formatMoneyShort(l.minNextBid)}</span>
+            min next <span className="num text-[#1a1408]/75"><DualMoney paise={l.minNextBid} short /></span>
           </span>
         </div>
       </div>

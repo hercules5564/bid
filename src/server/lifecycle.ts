@@ -3,6 +3,7 @@ import { auctionConfig } from "@/lib/config";
 import { emitClosed, emitTimer, emitLeaderboard } from "@/lib/socket-emit";
 import { invalidate } from "@/lib/cache";
 import { notify } from "./notifications";
+import { captureHold, releaseHold } from "./wallet";
 
 type LockedRow = {
   id: string;
@@ -76,7 +77,7 @@ export async function closeDueAuctions(now = new Date()) {
     if (outcome) closed++;
   }
   if (closed > 0) {
-    invalidate("boards", "rail", "showdownHero", "categories");
+    invalidate("boards", "rail", "showdownHero", "categories", "browse");
     emitLeaderboard();
   }
   return closed;
@@ -103,6 +104,7 @@ export async function closeListing(listingId: string, now = new Date()) {
       select: { userId: true, amount: true },
     });
 
+    let walletPaid = false;
     if (winning) {
       await tx.listing.update({
         where: { id: l.id },
@@ -115,6 +117,13 @@ export async function closeListing(listingId: string, now = new Date()) {
           totalWonValue: { increment: winning.amount },
         },
       });
+      // Wallet capture: the winner's held bid leaves the wallet now, so the
+      // sale is born PAID with no checkout step. No hold (legacy bids) →
+      // PENDING order + manual checkout, exactly like before.
+      const { captured } = await captureHold(tx as never, {
+        userId: winning.userId,
+        listingId: l.id,
+      });
       // Wire the sale: an Order is created the moment the hammer falls so the
       // winner can check out. idempotent via the unique listingId.
       await tx.order.upsert({
@@ -125,8 +134,21 @@ export async function closeListing(listingId: string, now = new Date()) {
           buyerId: winning.userId,
           sellerId: l.sellerId,
           amount: winning.amount,
+          ...(captured > 0
+            ? { status: "PAID" as never, paidAt: now, provider: "wallet", providerRef: "wallet:capture" }
+            : {}),
         },
       });
+      // Free every loser's hold — the lot is decided.
+      for (const b of await tx.bid.findMany({
+        where: { listingId: l.id },
+        distinct: ["userId"],
+        select: { userId: true },
+      })) {
+        if (b.userId === winning.userId) continue;
+        await releaseHold(tx as never, { userId: b.userId, listingId: l.id });
+      }
+      walletPaid = captured > 0;
     } else {
       await tx.listing.update({ where: { id: l.id }, data: { status: "UNSOLD" as never } });
     }
@@ -150,6 +172,7 @@ export async function closeListing(listingId: string, now = new Date()) {
       title: l.title,
       finalPrice: l.currentPrice,
       winnerId: winning?.userId ?? null,
+      walletPaid,
       bidderIds: bidders.map((b) => b.userId),
     };
   }, TX_OPTS);
@@ -173,9 +196,11 @@ export async function closeListing(listingId: string, now = new Date()) {
   if (outcome.winnerId) {
     await notify({
       userId: outcome.winnerId,
-      type: "WON",
+      type: "ORDER_PAID",
       title: "You won! 🏆",
-      body: `You won "${outcome.title}". Time to check out.`,
+      body: outcome.walletPaid
+        ? `You won "${outcome.title}" — paid automatically from your wallet.`
+        : `You won "${outcome.title}". Time to check out.`,
       listingId: outcome.id,
     });
     for (const uid of outcome.bidderIds) {

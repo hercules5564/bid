@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, startSession } from "@/lib/auth";
+import { grantSignupBonus } from "@/server/wallet";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(60, "Name must be at most 60 characters"),
@@ -58,5 +59,7 @@ export async function POST(req: NextRequest) {
   }
 
   await startSession(user.id);
+  // Demo starting balance so new users can bid immediately (see wallet.ts).
+  await grantSignupBonus(user.id).catch(() => {});
   return NextResponse.json({ ok: true, user });
 }

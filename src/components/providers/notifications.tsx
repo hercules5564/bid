@@ -29,6 +29,9 @@ const toneFor: Record<string, "gold" | "arc" | "ember" | "mint"> = {
   ENDING_SOON: "ember",
   SHOWDOWN_STARTING: "gold",
   BID_PLACED: "mint",
+  REVIEW_RECEIVED: "gold",
+  DISPUTE_OPENED: "ember",
+  DISPUTE_RESOLVED: "mint",
 };
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {

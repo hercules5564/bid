@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PlusSquare, Settings2 } from "lucide-react";
+import { PlusSquare, Settings2, Flag } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCategoriesWithCounts } from "@/server/listings";
+import { listDisputes } from "@/server/disputes";
 import { formatMoney } from "@/lib/money";
 import { CreateListingForm } from "@/components/admin/CreateListingForm";
 import { RotateShowdownButton } from "@/components/admin/RotateShowdownButton";
+import { DisputesPanel } from "@/components/admin/DisputesPanel";
 import { StatusPill, DurationBadge } from "@/components/ui/primitives";
 
 export const dynamic = "force-dynamic";
@@ -27,13 +29,14 @@ export default async function AdminPage() {
     );
   }
 
-  const [categories, recent] = await Promise.all([
+  const [categories, recent, disputes] = await Promise.all([
     getCategoriesWithCounts(),
     prisma.listing.findMany({
       orderBy: { createdAt: "desc" },
       take: 14,
       select: { id: true, title: true, status: true, durationType: true, currentPrice: true, bidCount: true },
     }),
+    user.role === "ADMIN" ? listDisputes("OPEN") : Promise.resolve([]),
   ]);
 
   return (
@@ -81,6 +84,18 @@ export default async function AdminPage() {
           </div>
         </div>
       </div>
+
+      {user.role === "ADMIN" && (
+        <div className="mt-10">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#1a1408]/70">
+            <Flag size={15} className="text-ember" /> Open disputes
+            {disputes.length > 0 && (
+              <span className="chip border-ember/30 bg-ember/10 text-ember">{disputes.length}</span>
+            )}
+          </div>
+          <DisputesPanel disputes={disputes} />
+        </div>
+      )}
     </div>
   );
 }

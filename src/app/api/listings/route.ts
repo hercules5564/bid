@@ -61,6 +61,6 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   });
 
-  invalidate("rail", "categories");
+  invalidate("rail", "categories", "browse");
   return NextResponse.json({ ok: true, id: listing.id });
 }

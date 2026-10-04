@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Gavel, Zap, Lock, Loader2 } from "lucide-react";
 import { formatMoney, formatMoneyShort, toRupees } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import { useSession } from "@/components/providers/session";
 import { cn } from "@/lib/cn";
 
@@ -25,13 +26,21 @@ export function BidBox({
   const [amount, setAmount] = useState(() => toRupees(minNextBid));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
   const touched = useRef(false);
 
   // Keep the field at/above the live minimum unless the user typed something higher.
+  // A cleared field stays blank (NaN) instead of snapping to 0.
   useEffect(() => {
-    setAmount((cur) => (!touched.current || cur < toRupees(minNextBid) ? toRupees(minNextBid) : cur));
+    setAmount((cur) => {
+      if (!touched.current) return toRupees(minNextBid);
+      if (!Number.isFinite(cur)) return cur;
+      return cur < toRupees(minNextBid) ? toRupees(minNextBid) : cur;
+    });
   }, [minNextBid]);
+
+  const amountValid = Number.isFinite(amount) && amount > 0;
 
   if (!user) {
     return (
@@ -64,8 +73,14 @@ export function BidBox({
 
   async function place(paise: number) {
     if (submitting) return;
+    if (!Number.isFinite(paise) || paise <= 0) {
+      setError("Enter a bid amount above ₹0.");
+      setErrorCode(null);
+      return;
+    }
     setSubmitting(true);
     setError(null);
+    setErrorCode(null);
     try {
       const res = await fetch(`/api/listings/${listingId}/bid`, {
         method: "POST",
@@ -75,6 +90,7 @@ export function BidBox({
       const data = await res.json();
       if (!data.ok) {
         setError(data.message || "Bid rejected.");
+        setErrorCode(typeof data.code === "string" ? data.code : null);
         if (data.minNextBid) setAmount(toRupees(data.minNextBid));
       } else {
         setFlash(true);
@@ -93,10 +109,14 @@ export function BidBox({
     if (!window.confirm(`Buy this now for ${formatMoney(buyNowPrice)} and win instantly?`)) return;
     setSubmitting(true);
     setError(null);
+    setErrorCode(null);
     try {
       const res = await fetch(`/api/listings/${listingId}/buy-now`, { method: "POST" });
       const data = await res.json();
-      if (!data.ok) setError(data.message || "Buy Now failed.");
+      if (!data.ok) {
+        setError(data.message || "Buy Now failed.");
+        setErrorCode(typeof data.code === "string" ? data.code : null);
+      }
     } catch {
       setError("Network error — try again.");
     } finally {
@@ -127,18 +147,19 @@ export function BidBox({
           <input
             type="number"
             inputMode="numeric"
-            value={amount}
+            value={Number.isFinite(amount) ? amount : ""}
             min={toRupees(minNextBid)}
+            placeholder={String(toRupees(minNextBid))}
             onChange={(e) => {
               touched.current = true;
-              setAmount(Number(e.target.value));
+              setAmount(e.target.value === "" ? NaN : Number(e.target.value));
             }}
             className="num w-full bg-transparent py-2.5 text-lg font-bold text-[#1a1408] focus:outline-none"
           />
         </div>
         <button
           onClick={() => place(Math.round(amount * 100))}
-          disabled={submitting}
+          disabled={submitting || !amountValid}
           className="btn-gold min-w-[7.5rem]"
         >
           {submitting ? <Loader2 size={16} className="animate-spin" /> : <Gavel size={16} />}
@@ -147,10 +168,22 @@ export function BidBox({
       </div>
 
       <p className="mt-2 text-xs text-[#1a1408]/40">
-        Minimum next bid <span className="num text-[#1a1408]/70">{formatMoney(minNextBid)}</span>
+        Minimum next bid <span className="num text-[#1a1408]/70"><DualMoney paise={minNextBid} /></span>
       </p>
+      {!amountValid && (
+        <p className="mt-1 text-xs font-medium text-ember">Enter a bid amount above ₹0.</p>
+      )}
 
-      {error && <p className="mt-2 rounded-lg bg-ember/10 px-3 py-2 text-xs font-medium text-ember">{error}</p>}
+      {error && (
+        <div className="mt-2 rounded-lg bg-ember/10 px-3 py-2 text-xs font-medium text-ember">
+          <p>{error}</p>
+          {errorCode === "INSUFFICIENT_BALANCE" && (
+            <Link href="/wallet" className="mt-1 inline-flex items-center gap-1 font-bold underline underline-offset-2">
+              Top up wallet to keep bidding
+            </Link>
+          )}
+        </div>
+      )}
 
       {buyNowPrice && (
         <button
@@ -158,7 +191,7 @@ export function BidBox({
           disabled={submitting}
           className="btn-ghost mt-3 w-full border-arc/30 text-arc-soft hover:bg-arc/10"
         >
-          <Zap size={15} /> Buy now for {formatMoney(buyNowPrice)}
+          <Zap size={15} /> Buy now for <DualMoney paise={buyNowPrice} short />
         </button>
       )}
     </div>

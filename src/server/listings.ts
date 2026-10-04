@@ -113,6 +113,22 @@ export type BrowseParams = {
 };
 
 export async function browseListings(params: BrowseParams): Promise<ListingSummary[]> {
+  // Filter combinations are re-requested constantly while switching tabs and
+  // tweaking filters — cache each combination briefly so back-and-forth
+  // navigation hits memory instead of re-querying a distant DB.
+  const key = `browse:${JSON.stringify({
+    c: params.category ?? "",
+    d: params.durationType ?? "",
+    min: params.minPrice ?? "",
+    max: params.maxPrice ?? "",
+    q: params.q ?? "",
+    s: params.sort ?? "ending",
+    closed: params.includeClosed ? 1 : 0,
+  })}`;
+  return cached(key, 10000, () => browseListingsUncached(params));
+}
+
+async function browseListingsUncached(params: BrowseParams): Promise<ListingSummary[]> {
   const where: Prisma.ListingWhereInput = {
     status: params.includeClosed
       ? { in: [...OPEN_STATUSES, "SOLD", "UNSOLD", "CLOSED"] }

@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { useSession } from "@/components/providers/session";
 import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
+import { WalletChip } from "./WalletChip";
 import { Logo } from "./Logo";
 
 const LINKS = [
@@ -71,6 +72,7 @@ export function TopNav() {
         <div className="ml-auto flex items-center gap-2 lg:ml-3">
           {user ? (
             <>
+              <WalletChip />
               <NotificationBell />
               <UserMenu />
             </>
@@ -89,7 +91,7 @@ export function TopNav() {
 
       {/* mobile nav row */}
       <div className="flex items-center gap-1 overflow-x-auto border-t border-white/[0.05] px-4 py-2 no-scrollbar md:hidden">
-        {[...LINKS, { href: "/showdown", label: "Showdown" }].map((l) => (
+        {[...LINKS, { href: "/wallet", label: "Wallet" }, { href: "/showdown", label: "Showdown" }].map((l) => (
           <Link
             key={l.href}
             href={l.href}

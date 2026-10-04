@@ -4,7 +4,10 @@ import { Package, Clock3, CheckCheck, ReceiptText, XCircle } from "lucide-react"
 import { getCurrentUser } from "@/lib/auth";
 import { getUserOrders } from "@/server/orders";
 import { formatMoney } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import { timeAgo } from "@/lib/time";
+import { ReviewForm } from "@/components/orders/ReviewForm";
+import { DisputeForm } from "@/components/orders/DisputeForm";
 import type { OrderItem } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -50,12 +53,18 @@ function OrderRow({ order }: { order: OrderItem }) {
             Tx {order.txRef.slice(0, 10)}…{order.txRef.slice(-6)}
           </p>
         )}
+        {order.status === "PAID" && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <ReviewForm orderId={order.id} existing={order.review} />
+            <DisputeForm orderId={order.id} dispute={order.dispute} />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
         <div className="text-right">
           <div className="label-caps">Amount</div>
-          <div className="num text-lg font-bold text-gold">{formatMoney(order.amount)}</div>
+          <div className="num text-lg font-bold text-gold"><DualMoney paise={order.amount} /></div>
         </div>
         <span className={`chip ${meta.cls}`}>
           {meta.icon}

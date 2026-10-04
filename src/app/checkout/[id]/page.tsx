@@ -3,8 +3,10 @@ import Link from "next/link";
 import { ArrowLeft, Package, Clock3 } from "lucide-react";
 import { getSessionUserId } from "@/lib/auth";
 import { getOrderForCheckout, activeProviderLabel } from "@/server/orders";
+import { bybitEnabled } from "@/server/payments";
 import { escrowConfig, splitFee } from "@/lib/config";
 import { formatMoney } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import { timeAgo } from "@/lib/time";
 import { CheckoutForm } from "@/components/orders/CheckoutForm";
 
@@ -47,6 +49,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
               fee={fee}
               sellerPayout={sellerPayout}
               feePercent={feePercent}
+              bybit={bybitEnabled()}
             />
           ) : (
             <div className="panel flex flex-col items-center gap-3 p-10 text-center">
@@ -92,7 +95,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
             <div className="mt-4 flex items-end justify-between border-t border-[#3c2d0f]/10 pt-4">
               <div>
                 <div className="label-caps">Total</div>
-                <div className="num text-2xl font-extrabold text-gold">{formatMoney(order.amount)}</div>
+                <div className="num text-2xl font-extrabold text-gold"><DualMoney paise={order.amount} layout="sub" /></div>
               </div>
               <div className="text-right text-xs text-[#1a1408]/40">
                 <div className="label-caps">Status</div>

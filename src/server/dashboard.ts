@@ -94,19 +94,35 @@ export async function getPublicProfile(handle: string) {
       auctionsWon: true,
       totalWonValue: true,
       highestSingleBid: true,
+      sellerRatingAvg: true,
+      sellerRatingCount: true,
     },
   });
   if (!user) return null;
 
-  const [wonRows, boards] = await Promise.all([
+  const [wonRows, boards, sellerReviews] = await Promise.all([
     prisma.listing.findMany({
       relationLoadStrategy: "join",
       where: { winnerId: user.id, status: "SOLD" },
-      orderBy: { endsAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 8,
       select: CARD_SELECT,
     }),
     computeAllBoards(user.id),
+    // Seller reputation: newest reviews with buyer + lot context.
+    prisma.review.findMany({
+      where: { sellerId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        createdAt: true,
+        buyer: { select: { id: true, handle: true, name: true, avatar: true } },
+        listing: { select: { id: true, title: true } },
+      },
+    }),
   ]);
 
   const placements = (Object.keys(boards) as LeaderboardPeriod[]).map((period) => ({
@@ -114,5 +130,10 @@ export async function getPublicProfile(handle: string) {
     rank: boards[period].you?.rank ?? null,
   }));
 
-  return { user, wins: wonRows.map(listingSummary), placements };
+  return {
+    user,
+    wins: wonRows.map(listingSummary),
+    placements,
+    reviews: sellerReviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
+  };
 }

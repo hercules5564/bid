@@ -5,6 +5,7 @@ import { Swords, Users, Flame, ArrowRight, Gavel } from "lucide-react";
 import { useRoom, useSocketEvent } from "@/hooks/use-socket";
 import { SocketEvent } from "@/lib/events";
 import { formatMoney } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import { Countdown } from "@/components/ui/Countdown";
 import type { ShowdownPayload, BidNewPayload } from "@/lib/socket-emit";
 
@@ -66,7 +67,7 @@ export function ShowdownHero({ data }: { data: ShowdownHeroData }) {
           <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-4">
             <div>
               <div className="label-caps">Top bid</div>
-              <div className="num text-3xl font-extrabold text-gold sm:text-4xl">{formatMoney(price)}</div>
+              <div className="num text-3xl font-extrabold text-gold sm:text-4xl"><DualMoney paise={price} layout="sub" /></div>
             </div>
             <div>
               <div className="label-caps">Closes in</div>

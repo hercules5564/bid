@@ -7,6 +7,7 @@ import { getSocket } from "@/lib/socket-client";
 import { SocketEvent, Room } from "@/lib/events";
 import { useSession } from "@/components/providers/session";
 import { formatMoney } from "@/lib/money";
+import { DualMoney } from "@/components/money/DualMoney";
 import { cn } from "@/lib/cn";
 import { DurationBadge, StatusPill } from "@/components/ui/primitives";
 import { Countdown } from "@/components/ui/Countdown";
@@ -132,7 +133,7 @@ export function ListingLive({ detail, sellerId }: { detail: ListingDetail; selle
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className="num whitespace-nowrap py-0.5 pl-0.5 pr-2 text-[1.65rem] font-extrabold leading-[1.15] text-gold-deep sm:text-4xl"
               >
-                {formatMoney(price)}
+                <DualMoney paise={price} layout="sub" />
               </motion.div>
             </AnimatePresence>
             <div className="num mt-1 text-xs font-medium text-[#1a1408]/55">{bidCount} bids placed</div>

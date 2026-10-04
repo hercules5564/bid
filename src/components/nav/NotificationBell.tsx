@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, CheckCheck, Trophy, Zap, Gavel, Swords, Clock3 } from "lucide-react";
+import { Bell, CheckCheck, Trophy, Zap, Gavel, Swords, Clock3, Star, Flag } from "lucide-react";
 import { useNotifications } from "@/components/providers/notifications";
 import { timeAgo } from "@/lib/time";
 import { cn } from "@/lib/cn";
@@ -14,6 +14,9 @@ const icon: Record<string, React.ReactNode> = {
   ENDING_SOON: <Clock3 size={15} className="text-ember" />,
   SHOWDOWN_STARTING: <Swords size={15} className="text-gold" />,
   BID_PLACED: <Gavel size={15} className="text-mint" />,
+  REVIEW_RECEIVED: <Star size={15} className="text-gold" />,
+  DISPUTE_OPENED: <Flag size={15} className="text-ember" />,
+  DISPUTE_RESOLVED: <CheckCheck size={15} className="text-mint" />,
 };
 
 export function NotificationBell() {

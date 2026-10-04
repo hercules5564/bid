@@ -25,6 +25,26 @@ function periodStart(period: LeaderboardPeriod, now = new Date()): Date | null {
 
 type Ranked = { userId: string; score: number; wins: number };
 
+// Boards only change when an auction closes or a bid lands (both call
+// invalidate("boards", ...)), so the heavy groupBy scans can be cached globally
+// per (metric, period) and shared by every visitor instead of re-scanning the
+// Bid/Listing tables on each navigation. Kept under the "boards:" prefix so the
+// existing invalidations keep busting it.
+const RANK_TTL = 30000;
+
+function getRanked(period: LeaderboardPeriod): Promise<Ranked[]> {
+  const metric = auctionConfig.scoringMetric;
+  return cached(`boards:rank:${metric}:${period}`, RANK_TTL, async () => {
+    const start = periodStart(period);
+    const ranked: Ranked[] =
+      metric === "WINNING_VALUE" ? await rankByWinningValue(start) : await rankByBids(start, metric);
+
+    return ranked
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score || b.wins - a.wins || a.userId.localeCompare(b.userId));
+  });
+}
+
 async function rankByWinningValue(start: Date | null): Promise<Ranked[]> {
   const grouped = await prisma.listing.groupBy({
     by: ["winnerId"],
@@ -59,15 +79,8 @@ export async function computeBoard(
   period: LeaderboardPeriod,
   currentUserId?: string | null
 ): Promise<LeaderboardBoard> {
-  const start = periodStart(period);
   const metric = auctionConfig.scoringMetric;
-
-  let ranked: Ranked[] =
-    metric === "WINNING_VALUE" ? await rankByWinningValue(start) : await rankByBids(start, metric);
-
-  ranked = ranked
-    .filter((r) => r.score > 0)
-    .sort((a, b) => (b.score - a.score) || (b.wins - a.wins) || a.userId.localeCompare(b.userId));
+  const ranked = await getRanked(period);
 
   const rankOf = new Map<string, number>();
   ranked.forEach((r, i) => rankOf.set(r.userId, i + 1));
@@ -106,11 +119,10 @@ export async function computeBoard(
 }
 
 export async function computeAllBoards(currentUserId?: string | null) {
-  // Boards only change when an auction closes (which invalidates this key), so a
-  // short TTL is safe and keeps the busy homepage/leaderboards page snappy.
-  return cached(`boards:${currentUserId ?? "anon"}`, 5000, async () => {
-    const periods: LeaderboardPeriod[] = ["DAY", "WEEK", "MONTH", "ALL_TIME"];
-    const boards = await Promise.all(periods.map((p) => computeBoard(p, currentUserId)));
-    return Object.fromEntries(periods.map((p, i) => [p, boards[i]])) as Record<LeaderboardPeriod, LeaderboardBoard>;
-  });
+  // The expensive scans are cached globally inside getRanked(); the per-request
+  // work here is just 4 small user lookups (<=11 ids each), so every visitor
+  // shares the cache instead of each user id getting its own 5s entry.
+  const periods: LeaderboardPeriod[] = ["DAY", "WEEK", "MONTH", "ALL_TIME"];
+  const boards = await Promise.all(periods.map((p) => computeBoard(p, currentUserId)));
+  return Object.fromEntries(periods.map((p, i) => [p, boards[i]])) as Record<LeaderboardPeriod, LeaderboardBoard>;
 }
