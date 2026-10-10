@@ -4,6 +4,7 @@ import { ArrowLeft, Package, Clock3 } from "lucide-react";
 import { getSessionUserId } from "@/lib/auth";
 import { getOrderForCheckout, activeProviderLabel } from "@/server/orders";
 import { bybitEnabled } from "@/server/payments";
+import { razorpayEnabled } from "@/server/razorpay";
 import { escrowConfig, splitFee } from "@/lib/config";
 import { formatMoney } from "@/lib/money";
 import { DualMoney } from "@/components/money/DualMoney";
@@ -23,6 +24,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
 
   const showPay = order.status === "PENDING";
   const { fee, sellerPayout, feePercent } = splitFee(order.amount);
+  const card = razorpayEnabled();
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -35,7 +37,10 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
 
       <h1 className="font-display text-2xl font-extrabold text-[#1a1408] sm:text-3xl">Checkout</h1>
       <p className="mt-1 text-sm text-[#1a1408]/45">
-        Pay in USDT to Gavl escrow. Gavl releases money to the seller after delivery ({feePercent}% platform fee).
+        {card
+          ? "Pay by card/UPI or in USDT to Gavl escrow. Gavl releases money to the seller after delivery."
+          : "Pay in USDT to Gavl escrow. Gavl releases money to the seller after delivery."}{" "}
+        ({feePercent}% platform fee).
       </p>
 
       <div className="mt-8 grid gap-6 md:grid-cols-[1.4fr_1fr]">
@@ -50,6 +55,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
               sellerPayout={sellerPayout}
               feePercent={feePercent}
               bybit={bybitEnabled()}
+              card={card}
             />
           ) : (
             <div className="panel flex flex-col items-center gap-3 p-10 text-center">

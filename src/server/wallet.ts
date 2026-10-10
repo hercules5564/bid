@@ -186,17 +186,64 @@ export async function refundToWallet(
   });
 }
 
+/** Credit a verified card payment to the wallet. Idempotent via providerRef
+ *  (safe when both the client verify-call and the webhook settle). */
+export type CardTopupResult = { ok: true; balance: number } | { ok: false; code: string; message: string };
+
+export async function settleCardTopup(input: {
+  userId: string;
+  amountPaise: number;
+  providerRef: string;
+  note?: string;
+}): Promise<CardTopupResult> {
+  if (!input.userId) return { ok: false, code: "AUTH", message: "Sign in first." };
+  if (!Number.isInteger(input.amountPaise) || input.amountPaise <= 0) {
+    return { ok: false, code: "INVALID", message: "Invalid top-up amount." };
+  }
+  try {
+    const balance = await prisma.$transaction(async (tx) => {
+      const used = await tx.walletTransaction.findFirst({ where: { providerRef: input.providerRef } });
+      if (used) throw new Error("ALREADY_CREDITED");
+      const w = await lockWallet(tx, input.userId);
+      await tx.wallet.update({ where: { id: w.id }, data: { balance: w.balance + input.amountPaise } });
+      await logTxn(tx, {
+        userId: input.userId,
+        type: "TOPUP",
+        amount: input.amountPaise,
+        balanceAfter: w.balance + input.amountPaise,
+        heldAfter: w.held,
+        providerRef: input.providerRef,
+        note: input.note ?? "Card top-up via Razorpay",
+      });
+      return w.balance + input.amountPaise;
+    });
+    await notify({
+      userId: input.userId,
+      type: "WALLET_TOPUP",
+      title: "Wallet topped up 💰",
+      body: `₹${Math.round(input.amountPaise / 100).toLocaleString("en-IN")} added. You're ready to bid.`,
+    });
+    return { ok: true, balance };
+  } catch (e) {
+    if (e instanceof Error && e.message === "ALREADY_CREDITED") {
+      const s = await getWalletState(input.userId);
+      return { ok: true, balance: s.balance };
+    }
+    throw e;
+  }
+}
+
 export type TopUpResult =
   | { ok: true; balance: number }
   | { ok: false; code: string; message: string };
 
 /** Max single top-up in USDT (showcase cap). Override with WALLET_MAX_TOPUP_USDT. */
-function maxTopupUsdt(): number {
+export function maxTopupUsdt(): number {
   const v = Number(process.env.WALLET_MAX_TOPUP_USDT ?? "10000");
   return Number.isFinite(v) && v > 0 ? v : 10000;
 }
 
-function usdtRate(): number {
+export function usdtRate(): number {
   const rate = Number(process.env.BYBIT_USDT_INR_RATE);
   return Number.isFinite(rate) && rate > 0 ? rate : 90;
 }

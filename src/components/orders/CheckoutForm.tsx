@@ -6,6 +6,7 @@ import { formatMoney } from "@/lib/money";
 import { DualMoney } from "@/components/money/DualMoney";
 import type { OrderItem } from "@/types";
 import { cn } from "@/lib/cn";
+import { CardButton } from "./CardButton";
 
 type BybitPayment = {
   payId: string;
@@ -168,6 +169,7 @@ export function CheckoutForm({
   sellerPayout,
   feePercent,
   bybit,
+  card,
 }: {
   order: OrderItem;
   providerLabel: string;
@@ -178,6 +180,8 @@ export function CheckoutForm({
   feePercent: number;
   /** Show the Bybit Pay QR option — true once merchant credentials are set. */
   bybit?: boolean;
+  /** Show the card/UPI option — true once Razorpay keys are set. */
+  card?: boolean;
 }) {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", txRef: "" });
@@ -253,6 +257,23 @@ export function CheckoutForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
+      {card ? (
+        <>
+          <CardButton
+            order={order}
+            contact={{ name: form.name, email: form.email, phone: form.phone, address: form.address }}
+            onDone={() => {
+              setState("done");
+              router.refresh();
+            }}
+          />
+          <div className="flex items-center gap-3 text-xs text-[#1a1408]/35">
+            <span className="h-px flex-1 bg-[#3c2d0f]/10" />
+            or pay {bybit ? "with crypto" : "manually with USDT"}
+            <span className="h-px flex-1 bg-[#3c2d0f]/10" />
+          </div>
+        </>
+      ) : null}
       {bybit ? (
         <>
           <BybitButton

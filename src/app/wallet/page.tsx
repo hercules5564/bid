@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSessionUserId } from "@/lib/auth";
 import { getWalletState } from "@/server/wallet";
 import { escrowConfig } from "@/lib/config";
+import { razorpayEnabled } from "@/server/razorpay";
 import { formatMoney } from "@/lib/money";
 import { DualMoney } from "@/components/money/DualMoney";
 import { TopUpForm } from "@/components/wallet/TopUpForm";
@@ -61,7 +62,7 @@ export default async function WalletPage() {
         no checkout, no unpaid winners.
       </div>
 
-      <TopUpForm escrowAddress={escrowConfig.usdtAddress} network={escrowConfig.network} />
+      <TopUpForm escrowAddress={escrowConfig.usdtAddress} network={escrowConfig.network} card={razorpayEnabled()} />
 
       <div className="panel p-5">
         <h2 className="text-base font-bold">Recent activity</h2>
