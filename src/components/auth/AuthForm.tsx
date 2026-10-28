@@ -1,14 +1,13 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Gavel, Loader2 } from "lucide-react";
 
 const field =
   "w-full rounded-xl border border-[#3c2d0f]/15 bg-white/70 px-3.5 py-3 text-sm text-[#1a1408] placeholder:text-[#1a1408]/40 focus:border-gold/40 focus:outline-none";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
-  const router = useRouter();
   const sp = useSearchParams();
   const next = sp.get("next") || "/";
   const [busy, setBusy] = useState(false);
@@ -38,8 +37,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       const data = await res.json();
       if (!data.ok) setError(data.error || "Something went wrong.");
       else {
-        router.push(next);
-        router.refresh();
+        window.location.href = next;
       }
     } catch {
       setError("Network error — try again.");
@@ -105,6 +103,14 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           {busy ? <Loader2 size={16} className="animate-spin" /> : <Gavel size={16} />}
           {mode === "signup" ? "Create account" : "Sign in"}
         </button>
+
+        {mode === "login" && (
+          <p className="mt-2 text-center text-xs text-[#1a1408]/45">
+            <Link href="/forgot-password" className="text-gold hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+        )}
       </form>
 
       <p className="mt-4 text-center text-sm text-[#1a1408]/45">

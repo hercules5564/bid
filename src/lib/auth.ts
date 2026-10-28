@@ -42,6 +42,23 @@ async function verifySessionToken(token: string): Promise<string | null> {
   }
 }
 
+export async function createResetToken(userId: string): Promise<string> {
+  return new SignJWT({ rst: userId })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("1h")
+    .sign(secret());
+}
+
+export async function verifyResetToken(token: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret());
+    return (payload.rst as string) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const sessionCookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,
